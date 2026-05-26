@@ -205,12 +205,12 @@ EOF
 
     cat > "$repo/.codex-plugin/plugin.json" <<EOF
 {
-  "name": "superpowers",
+  "name": "snowball",
   "version": "$MANIFEST_VERSION"
 }
 EOF
 
-    cat > "$repo/assets/superpowers-small.svg" <<'EOF'
+    cat > "$repo/assets/snowball-small.svg" <<'EOF'
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"></svg>
 EOF
 
@@ -232,7 +232,7 @@ EOF
         .codex-plugin/plugin.json \
         .gitignore \
         assets/app-icon.png \
-        assets/superpowers-small.svg \
+        assets/snowball-small.svg \
         package.json \
         scripts/sync-to-codex-plugin.sh \
         skills/example/SKILL.md
@@ -244,15 +244,15 @@ EOF
 write_destination_fixture() {
     local repo="$1"
 
-    mkdir -p "$repo/plugins/superpowers/skills/example"
-    printf 'fixture keep\n' > "$repo/plugins/superpowers/.fixture-keep"
-    cat > "$repo/plugins/superpowers/skills/example/SKILL.md" <<'EOF'
+    mkdir -p "$repo/plugins/snowball/skills/example"
+    printf 'fixture keep\n' > "$repo/plugins/snowball/.fixture-keep"
+    cat > "$repo/plugins/snowball/skills/example/SKILL.md" <<'EOF'
 # Example Skill
 
 Fixture content.
 EOF
-    git -C "$repo" add plugins/superpowers/.fixture-keep
-    git -C "$repo" add plugins/superpowers/skills/example/SKILL.md
+    git -C "$repo" add plugins/snowball/.fixture-keep
+    git -C "$repo" add plugins/snowball/skills/example/SKILL.md
 
     commit_fixture "$repo" "Initial destination fixture"
 }
@@ -260,15 +260,15 @@ EOF
 add_openai_agent_metadata_fixture() {
     local repo="$1"
 
-    mkdir -p "$repo/plugins/superpowers/skills/example/agents"
+    mkdir -p "$repo/plugins/snowball/skills/example/agents"
 
-    cat > "$repo/plugins/superpowers/skills/example/agents/openai.yaml" <<'EOF'
+    cat > "$repo/plugins/snowball/skills/example/agents/openai.yaml" <<'EOF'
 interface:
   display_name: "Example"
   short_description: "Destination-owned OpenAI metadata"
 EOF
 
-    git -C "$repo" add plugins/superpowers/skills/example/agents/openai.yaml
+    git -C "$repo" add plugins/snowball/skills/example/agents/openai.yaml
 
     commit_fixture "$repo" "Add OpenAI agent metadata fixture"
 }
@@ -276,7 +276,7 @@ EOF
 dirty_tracked_destination_skill() {
     local repo="$1"
 
-    cat > "$repo/plugins/superpowers/skills/example/SKILL.md" <<'EOF'
+    cat > "$repo/plugins/snowball/skills/example/SKILL.md" <<'EOF'
 # Example Skill
 
 Locally modified fixture content.
@@ -287,46 +287,46 @@ write_synced_destination_fixture() {
     local repo="$1"
 
     mkdir -p \
-        "$repo/plugins/superpowers/.codex-plugin" \
-        "$repo/plugins/superpowers/.private-journal" \
-        "$repo/plugins/superpowers/assets" \
-        "$repo/plugins/superpowers/skills/example/agents" \
-        "$repo/plugins/superpowers/skills/example"
+        "$repo/plugins/snowball/.codex-plugin" \
+        "$repo/plugins/snowball/.private-journal" \
+        "$repo/plugins/snowball/assets" \
+        "$repo/plugins/snowball/skills/example/agents" \
+        "$repo/plugins/snowball/skills/example"
 
-    cat > "$repo/plugins/superpowers/.codex-plugin/plugin.json" <<EOF
+    cat > "$repo/plugins/snowball/.codex-plugin/plugin.json" <<EOF
 {
-  "name": "superpowers",
+  "name": "snowball",
   "version": "$MANIFEST_VERSION"
 }
 EOF
 
-    cat > "$repo/plugins/superpowers/assets/superpowers-small.svg" <<'EOF'
+    cat > "$repo/plugins/snowball/assets/snowball-small.svg" <<'EOF'
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"></svg>
 EOF
 
-    printf 'png fixture\n' > "$repo/plugins/superpowers/assets/app-icon.png"
+    printf 'png fixture\n' > "$repo/plugins/snowball/assets/app-icon.png"
 
-    cat > "$repo/plugins/superpowers/skills/example/SKILL.md" <<'EOF'
+    cat > "$repo/plugins/snowball/skills/example/SKILL.md" <<'EOF'
 # Example Skill
 
 Fixture content.
 EOF
 
-    cat > "$repo/plugins/superpowers/skills/example/agents/openai.yaml" <<'EOF'
+    cat > "$repo/plugins/snowball/skills/example/agents/openai.yaml" <<'EOF'
 interface:
   display_name: "Example"
   short_description: "Destination-owned OpenAI metadata"
 EOF
 
-    printf 'tracked keep\n' > "$repo/plugins/superpowers/.private-journal/keep.txt"
+    printf 'tracked keep\n' > "$repo/plugins/snowball/.private-journal/keep.txt"
 
     git -C "$repo" add \
-        plugins/superpowers/.codex-plugin/plugin.json \
-        plugins/superpowers/assets/app-icon.png \
-        plugins/superpowers/assets/superpowers-small.svg \
-        plugins/superpowers/skills/example/agents/openai.yaml \
-        plugins/superpowers/skills/example/SKILL.md \
-        plugins/superpowers/.private-journal/keep.txt
+        plugins/snowball/.codex-plugin/plugin.json \
+        plugins/snowball/assets/app-icon.png \
+        plugins/snowball/assets/snowball-small.svg \
+        plugins/snowball/skills/example/agents/openai.yaml \
+        plugins/snowball/skills/example/SKILL.md \
+        plugins/snowball/.private-journal/keep.txt
 
     commit_fixture "$repo" "Initial synced destination fixture"
 }
@@ -334,10 +334,10 @@ EOF
 write_stale_ignored_destination_fixture() {
     local repo="$1"
 
-    mkdir -p "$repo/plugins/superpowers/.private-journal"
-    printf 'fixture keep\n' > "$repo/plugins/superpowers/.fixture-keep"
-    printf 'stale ignored leak\n' > "$repo/plugins/superpowers/.private-journal/leak.txt"
-    git -C "$repo" add plugins/superpowers/.fixture-keep
+    mkdir -p "$repo/plugins/snowball/.private-journal"
+    printf 'fixture keep\n' > "$repo/plugins/snowball/.fixture-keep"
+    printf 'stale ignored leak\n' > "$repo/plugins/snowball/.private-journal/leak.txt"
+    git -C "$repo" add plugins/snowball/.fixture-keep
 
     commit_fixture "$repo" "Initial stale ignored destination fixture"
 }
@@ -528,8 +528,8 @@ main() {
     script_source="$(cat "$upstream/scripts/sync-to-codex-plugin.sh")"
     preview_section="$(printf '%s\n' "$preview_output" | sed -n '/^=== Preview (rsync --dry-run) ===$/,/^=== End preview ===$/p')"
     stale_preview_section="$(printf '%s\n' "$stale_preview_output" | sed -n '/^=== Preview (rsync --dry-run) ===$/,/^=== End preview ===$/p')"
-    dirty_skill_path="$dirty_apply_dest/plugins/superpowers/skills/example/SKILL.md"
-    noop_openai_metadata_path="$noop_apply_dest/plugins/superpowers/skills/example/agents/openai.yaml"
+    dirty_skill_path="$dirty_apply_dest/plugins/snowball/skills/example/SKILL.md"
+    noop_openai_metadata_path="$noop_apply_dest/plugins/snowball/skills/example/agents/openai.yaml"
 
     echo ""
     echo "Preview assertions..."
@@ -537,17 +537,17 @@ main() {
     assert_contains "$preview_output" "Version:  $MANIFEST_VERSION" "Preview uses manifest version"
     assert_not_contains "$preview_output" "Version:  $PACKAGE_VERSION" "Preview does not use package.json version"
     assert_contains "$preview_section" ".codex-plugin/plugin.json" "Preview includes manifest path"
-    assert_contains "$preview_section" "assets/superpowers-small.svg" "Preview includes SVG asset"
+    assert_contains "$preview_section" "assets/snowball-small.svg" "Preview includes SVG asset"
     assert_contains "$preview_section" "assets/app-icon.png" "Preview includes PNG asset"
     assert_contains "$preview_section" ".private-journal/keep.txt" "Preview includes tracked ignored file"
     assert_not_contains "$preview_section" ".private-journal/leak.txt" "Preview excludes ignored untracked file"
     assert_not_contains "$preview_section" "ignored-cache/" "Preview excludes pure ignored directories"
     assert_not_contains "$preview_output" "Overlay file (.codex-plugin/plugin.json) will be regenerated" "Preview omits overlay regeneration note"
-    assert_not_contains "$preview_output" "Assets (superpowers-small.svg, app-icon.png) will be seeded from" "Preview omits assets seeding note"
+    assert_not_contains "$preview_output" "Assets (snowball-small.svg, app-icon.png) will be seeded from" "Preview omits assets seeding note"
     assert_contains "$preview_section" "skills/example/SKILL.md" "Preview reflects dirty tracked destination file"
     assert_not_matches "$preview_section" "\\*deleting +skills/example/agents/openai\\.yaml" "Preview preserves destination-owned OpenAI agent metadata"
     assert_current_branch "$dest" "$dest_branch" "Preview leaves destination checkout on its original branch"
-    assert_branch_absent "$dest" "sync/superpowers-*" "Preview does not create sync branch in destination checkout"
+    assert_branch_absent "$dest" "sync/snowball-*" "Preview does not create sync branch in destination checkout"
 
     echo ""
     echo "Mixed-directory assertions..."
@@ -563,26 +563,26 @@ main() {
     echo ""
     echo "Bootstrap assertions..."
     assert_equals "$bootstrap_status" "0" "Bootstrap preview exits successfully"
-    assert_contains "$bootstrap_output" "Mode:     BOOTSTRAP (creating plugins/superpowers/ when absent)" "Bootstrap preview describes directory creation"
+    assert_contains "$bootstrap_output" "Mode:     BOOTSTRAP (creating plugins/snowball/ when absent)" "Bootstrap preview describes directory creation"
     assert_not_contains "$bootstrap_output" "Assets:" "Bootstrap preview omits external assets path"
     assert_contains "$bootstrap_output" "Dry run only. Nothing was changed or pushed." "Bootstrap preview remains dry-run only"
-    assert_path_absent "$bootstrap_dest/plugins/superpowers" "Bootstrap preview does not create destination plugin directory"
+    assert_path_absent "$bootstrap_dest/plugins/snowball" "Bootstrap preview does not create destination plugin directory"
     assert_current_branch "$bootstrap_dest" "$bootstrap_dest_branch" "Bootstrap preview leaves destination checkout on its original branch"
-    assert_branch_absent "$bootstrap_dest" "bootstrap/superpowers-*" "Bootstrap preview does not create bootstrap branch in destination checkout"
+    assert_branch_absent "$bootstrap_dest" "bootstrap/snowball-*" "Bootstrap preview does not create bootstrap branch in destination checkout"
 
     echo ""
     echo "Apply assertions..."
     assert_equals "$dirty_apply_status" "1" "Dirty local apply exits with failure"
-    assert_contains "$dirty_apply_output" "ERROR: local checkout has uncommitted changes under 'plugins/superpowers'" "Dirty local apply reports protected destination path"
+    assert_contains "$dirty_apply_output" "ERROR: local checkout has uncommitted changes under 'plugins/snowball'" "Dirty local apply reports protected destination path"
     assert_current_branch "$dirty_apply_dest" "$dirty_apply_dest_branch" "Dirty local apply leaves destination checkout on its original branch"
-    assert_branch_absent "$dirty_apply_dest" "sync/superpowers-*" "Dirty local apply does not create sync branch in destination checkout"
+    assert_branch_absent "$dirty_apply_dest" "sync/snowball-*" "Dirty local apply does not create sync branch in destination checkout"
     assert_file_equals "$dirty_skill_path" "# Example Skill
 
 Locally modified fixture content." "Dirty local apply preserves tracked working-tree file content"
     assert_equals "$noop_apply_status" "0" "Clean no-op local apply exits successfully"
     assert_contains "$noop_apply_output" "No changes — embedded plugin was already in sync with upstream" "Clean no-op local apply reports no changes"
     assert_current_branch "$noop_apply_dest" "$noop_apply_dest_branch" "Clean no-op local apply leaves destination checkout on its original branch"
-    assert_branch_absent "$noop_apply_dest" "sync/superpowers-*" "Clean no-op local apply does not create sync branch in destination checkout"
+    assert_branch_absent "$noop_apply_dest" "sync/snowball-*" "Clean no-op local apply does not create sync branch in destination checkout"
     assert_file_equals "$noop_openai_metadata_path" "interface:
   display_name: \"Example\"
   short_description: \"Destination-owned OpenAI metadata\"" "Clean no-op local apply preserves OpenAI agent metadata"

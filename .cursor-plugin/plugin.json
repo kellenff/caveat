@@ -1,14 +1,14 @@
 {
-  "name": "superpowers",
-  "displayName": "Superpowers",
+  "name": "snowball",
+  "displayName": "Snowball",
   "description": "Core skills library: TDD, debugging, collaboration patterns, and proven techniques",
   "version": "5.1.0",
   "author": {
-    "name": "Jesse Vincent",
-    "email": "jesse@fsck.com"
+    "name": "Kellen Frodelius-Fujimoto",
+    "email": "kellen@kellenfujimoto.com"
   },
-  "homepage": "https://github.com/obra/superpowers",
-  "repository": "https://github.com/obra/superpowers",
+  "homepage": "https://github.com/kellenff/snowball",
+  "repository": "https://github.com/kellenff/snowball",
   "license": "MIT",
   "keywords": [
     "skills",
