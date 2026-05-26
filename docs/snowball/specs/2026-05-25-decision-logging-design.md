@@ -315,11 +315,12 @@ The detached worker (`extract-worker.sh`) does the real work:
 2. Dispatch headless extraction:
      claude -p \
        --append-system-prompt "$(cat scripts/extract-observations.md)" \
-       --output-format json \
+       --output-format text \
        < transcript.jsonl
 3. Parse output as JSONL; for each valid line, invoke append-observation.cjs
-4. If extraction surfaces a missed high-confidence operator decision, invoke write-madr.cjs with capture_mechanism=stop-hook-subagent
-5. On any error, log to ~/.snowball/decision-logging-errors.log
+4. On any error, log to ~/.snowball/decision-logging-errors.log
+
+The `capture_mechanism: stop-hook-subagent` enum value is reserved for Phase 2, where the worker will also be allowed to write MADRs for operator decisions the in-session hooks missed. Phase 1's worker only appends observations.
 ```
 
 This explicit `nohup ... & disown` pattern means the design doesn't depend on whether the hook framework respects an `async: true` field. The Stop hook returns within milliseconds; extraction runs out-of-band.

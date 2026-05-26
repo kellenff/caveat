@@ -1,0 +1,12 @@
+{
+  "name": "decision-logging-tests",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "node --test approval-phrases.test.cjs write-madr.test.cjs append-observation.test.cjs",
+    "test:integration": "bash on-ask-user-question.test.sh && bash on-user-prompt.test.sh && bash on-stop.test.sh"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}
