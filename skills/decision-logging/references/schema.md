@@ -17,6 +17,7 @@ snowball:
   source: operator | agent
   confidence: high | medium | low
   capture_mechanism: ask-user-question | user-prompt-pattern | stop-hook-subagent | manual
+  # stop-hook-subagent and manual are reserved for Phase 2 — not emitted by Phase 1 hooks.
   session_id: string
   source_event_id: string
   supersedes: filename | null

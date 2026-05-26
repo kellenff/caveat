@@ -23,7 +23,7 @@ Three Claude Code hooks emit decisions automatically:
 |---|---|---|
 | PostToolUse on `AskUserQuestion` | User picks an option from a structured prompt | One MADR per question-answer pair (`capture_mechanism: ask-user-question`) |
 | UserPromptSubmit (pattern match) | User submits a free-text prompt matching an approval phrase | One MADR (`capture_mechanism: user-prompt-pattern`), deduped against recent `ask-user-question` captures |
-| Stop → detached worker | Session ends | Headless `claude -p` extracts observations from the transcript; appends to `observations.jsonl` (`source: subagent`). May also write missed operator decisions as MADRs (`capture_mechanism: stop-hook-subagent`). |
+| Stop → detached worker | Session ends | Headless `claude -p` extracts observations from the transcript; appends to `observations.jsonl` (`source: subagent`). |
 
 All hooks no-op silently when the session is outside a git repo.
 
@@ -46,3 +46,4 @@ Snowball commits to the schema in `references/schema.md` with `schema_version: "
 - Source-skill tag defaults to `ambient`; transcript-based skill detection is deferred to Phase 2.
 - No manual `/log-decision` slash command yet.
 - No `superseded` linkage automation — operators hand-edit.
+- `capture_mechanism: stop-hook-subagent` is reserved in the schema for Phase 2 but not yet emitted; the Phase 1 worker only appends observations.
