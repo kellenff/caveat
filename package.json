@@ -2,5 +2,8 @@
   "name": "snowball",
   "version": "5.1.0",
   "type": "module",
-  "main": ".opencode/plugins/snowball.js"
+  "main": ".opencode/plugins/snowball.js",
+  "dependencies": {
+    "js-yaml": "^4.1.1"
+  }
 }
