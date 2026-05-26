@@ -79,3 +79,45 @@ test('slugify handles non-string input by returning a fallback', () => {
   assert.strictEqual(slugify(null), 'untitled');
   assert.strictEqual(slugify(''), 'untitled');
 });
+
+const fs = require('node:fs');
+const path = require('node:path');
+const { writeMadr } = require('../../skills/decision-logging/scripts/write-madr.cjs');
+const { makeTempRepo, cleanupTempRepo, readDecisionsDir } = require('./test-helpers.cjs');
+
+test('writeMadr writes to <repo>/docs/snowball/decisions/<timestamp>-<slug>.md', () => {
+  const repo = makeTempRepo();
+  try {
+    const filePath = writeMadr(sampleInput, { gitRoot: repo });
+    assert.ok(filePath.startsWith(path.join(repo, 'docs', 'snowball', 'decisions') + path.sep));
+    assert.ok(fs.existsSync(filePath));
+    const files = readDecisionsDir(repo);
+    assert.strictEqual(files.length, 1);
+    assert.match(files[0], /^2026-05-25T1430-choose-two-tier-storage-for-decision-logs\.md$/);
+  } finally {
+    cleanupTempRepo(repo);
+  }
+});
+
+test('writeMadr creates the decisions directory if absent', () => {
+  const repo = makeTempRepo();
+  try {
+    writeMadr(sampleInput, { gitRoot: repo });
+    assert.ok(fs.existsSync(path.join(repo, 'docs', 'snowball', 'decisions')));
+  } finally {
+    cleanupTempRepo(repo);
+  }
+});
+
+test('writeMadr appends a suffix when minute collision occurs', () => {
+  const repo = makeTempRepo();
+  try {
+    writeMadr(sampleInput, { gitRoot: repo });
+    const p2 = writeMadr({ ...sampleInput }, { gitRoot: repo });
+    assert.ok(fs.existsSync(p2));
+    const files = readDecisionsDir(repo);
+    assert.strictEqual(files.length, 2);
+  } finally {
+    cleanupTempRepo(repo);
+  }
+});
