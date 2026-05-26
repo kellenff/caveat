@@ -1,233 +1,147 @@
 # Snowball
 
-Snowball is a complete software development methodology for your coding agents, built on top of a set of composable skills and some initial instructions that make sure your agent uses them.
+Snowball is an agentic-skills plugin for multiple AI coding harnesses — Claude Code, Codex CLI, Cursor, OpenCode, Gemini CLI, and GitHub Copilot CLI. It's a fork of [`obra/superpowers`](https://github.com/obra/superpowers), maintained for personal use. As of 2026-05-25 the fork is a near-mirror of upstream `v5.1.0` with naming changed; substantive divergence will be documented here as it appears.
 
-## Quickstart
+> [!NOTE]
+> Personal fork. Upstream is [`obra/superpowers`](https://github.com/obra/superpowers) — see it for the canonical project, its install paths, and its community.
 
-Give your agent Snowball: [Claude Code](#claude-code), [Codex CLI](#codex-cli), [Codex App](#codex-app), [Factory Droid](#factory-droid), [Gemini CLI](#gemini-cli), [OpenCode](#opencode), [Cursor](#cursor), [GitHub Copilot CLI](#github-copilot-cli).
+> [!IMPORTANT]
+> Not accepting contributions. Issues and pull requests on this repository will not be reviewed.
 
-## How it works
+## Scope & status
 
-It starts from the moment you fire up your coding agent. As soon as it sees that you're building something, it *doesn't* just jump into trying to write code. Instead, it steps back and asks you what you're really trying to do. 
+### What this is
 
-Once it's teased a spec out of the conversation, it shows it to you in chunks short enough to actually read and digest. 
+- A markdown-based skills library that loads as agent behavior via session-start context injection.
+- A multi-harness plugin — one `skills/` directory, six per-harness manifests, one shared bootstrap script that adapts its output to each harness's expected JSON shape.
+- Zero runtime dependencies for skill loading. Skills are plain markdown; the bootstrap is one bash file. The exception: the `brainstorming` skill ships a local Node HTTP server for its visual companion (`skills/brainstorming/scripts/server.cjs`) — Node is required for that skill, not for the rest of the library.
 
-After you've signed off on the design, your agent puts together an implementation plan that's clear enough for an enthusiastic junior engineer with poor taste, no judgement, no project context, and an aversion to testing to follow. It emphasizes true red/green TDD, YAGNI (You Aren't Gonna Need It), and DRY. 
+### What this isn't
 
-Next up, once you say "go", it launches a *subagent-driven-development* process, having agents work through each engineering task, inspecting and reviewing their work, and continuing forward. It's not uncommon for Claude to be able to work autonomously for a couple hours at a time without deviating from the plan you put together.
+- Not an MCP server, not a runtime tool, not a library you import.
+- Not on any plugin marketplace. Install is clone-and-link only.
+- Not accepting issues, PRs, or feature requests.
 
-There's a bunch more to it, but that's the core of the system. And because the skills trigger automatically, you don't need to do anything special. Your coding agent just has Snowball.
+### Known stale or broken
 
+These are real artifacts in the repo that haven't been reconciled with the fork's posture. Tracking them here so a future-me debug session doesn't waste time:
 
-## Sponsorship
+- **Install instructions inherited from upstream don't work.** The bulk rename replaced `obra/superpowers-marketplace` with `kellenff/snowball-marketplace` in old documentation text, but that marketplace doesn't exist. The local-setup section below is the real install path.
+- **`scripts/sync-to-codex-plugin.sh` targets the wrong destination.** Its `FORK=` constant still points at `prime-radiant-inc/openai-codex-plugins` (upstream's Codex distribution repo). Until rewired to a fork-owned destination, the script will fail or push to a repo I don't own. Codex support itself is intended to stay; only the sync path is broken.
+- **`CLAUDE.md` still contains upstream's contributor-policing prose.** The "94% PR rejection rate / anti-slop / fork-specific changes will be closed" sections were written for upstream's open-contribution model. They don't apply to this fork and will be rewritten in a separate cleanup.
+- **`.github/ISSUE_TEMPLATE/`** carries upstream's open-issues assumption — out of place for a fork that takes no issues.
+- **`RELEASE-NOTES.md`** and the historical plans/specs under `docs/plans/`, `docs/snowball/plans/`, `docs/snowball/specs/` are upstream's historical record. Kept verbatim as history; not the current project's documentation.
 
-If Snowball has helped you do stuff that makes money and you are so inclined, I'd greatly appreciate it if you'd consider [sponsoring my opensource work](https://github.com/sponsors/obra).
+## Repository map
 
-Thanks! 
+| Path | What lives here |
+|---|---|
+| `skills/` | The 14 skills (see [Skills index](#skills-index)). Each is a directory with a `SKILL.md` plus optional `references/` and `scripts/`. |
+| `hooks/` | `session-start` (the bash bootstrap script), `run-hook.cmd` (polyglot bash/batch wrapper for Windows), `hooks.json` (Claude Code hook registration), `hooks-cursor.json` (Cursor hook registration). |
+| `.claude-plugin/` | Claude Code plugin manifest + dev marketplace manifest. |
+| `.codex-plugin/` | Codex plugin manifest, kept in sync (via `scripts/sync-to-codex-plugin.sh`) with a separate Codex distribution repo. |
+| `.cursor-plugin/` | Cursor plugin manifest. |
+| `.opencode/` | OpenCode JS plugin (`plugins/snowball.js`) and harness-specific install notes. |
+| `gemini-extension.json` | Gemini CLI extension manifest. |
+| `assets/` | App icon and Codex composer SVG. |
+| `scripts/` | `bump-version.sh` (cross-manifest semver bumper driven by `.version-bump.json`) and `sync-to-codex-plugin.sh` (currently stale — see above). |
+| `tests/` | Seven test groupings: harness-specific bootstrap tests, Codex-sync verification, skill-triggering evals, SDD end-to-end runs against example scaffolds. |
+| `docs/` | Setup notes (`README.opencode.md`, `windows/`), testing notes (`testing.md`), and historical design docs under `snowball/`. |
+| `CLAUDE.md`, `AGENTS.md` (symlink → `CLAUDE.md`), `GEMINI.md` | Per-harness context files loaded by each agent at session start. |
+| `RELEASE-NOTES.md` | Upstream's release history through v5.1.0. Kept as historical record. |
 
-- Jesse
+## Per-harness adapters
 
+| Harness | Manifest | Bootstrap loader | Context file |
+|---|---|---|---|
+| Claude Code | `.claude-plugin/plugin.json` | `hooks/hooks.json` → `hooks/run-hook.cmd session-start` | `CLAUDE.md` |
+| Cursor | `.cursor-plugin/plugin.json` | `hooks/hooks-cursor.json` → same script | `AGENTS.md` → `CLAUDE.md` |
+| GitHub Copilot CLI | `.claude-plugin/plugin.json` (shared) | same script, detects `COPILOT_CLI=1` and emits SDK-standard JSON shape | `AGENTS.md` |
+| OpenCode | `.opencode/plugins/snowball.js` | JS plugin, `experimental.chat.messages.transform` hook | `AGENTS.md` |
+| Codex CLI / Codex App | `.codex-plugin/plugin.json` | distributed via `scripts/sync-to-codex-plugin.sh` (currently stale; see above) | `AGENTS.md` |
+| Gemini CLI | `gemini-extension.json` | extension-managed; skills activate via `activate_skill` tool | `GEMINI.md` |
 
-## Installation
+### How the bootstrap works
 
-Installation differs by harness. If you use more than one, install Snowball separately for each one.
+The whole plugin hinges on `skills/using-snowball/SKILL.md` being **injected into the agent's context at session start**, not just present on disk. Without injection, the agent never invokes the `Skill` tool and the rest of the library is dead weight.
 
-### Claude Code
+For shell-driven harnesses (Claude Code, Cursor, Copilot CLI), [`hooks/session-start`](hooks/session-start) reads `using-snowball/SKILL.md`, JSON-escapes it via bash parameter substitution (no `jq` dependency), wraps it in `<EXTREMELY_IMPORTANT>` framing, and branches on environment variables to emit harness-specific JSON:
 
-Snowball is available via the [official Claude plugin marketplace](https://claude.com/plugins/superpowers)
+- `CURSOR_PLUGIN_ROOT` set → `additional_context` (snake_case)
+- `CLAUDE_PLUGIN_ROOT` set without `COPILOT_CLI` → `hookSpecificOutput.additionalContext`
+- Otherwise → `additionalContext` (Copilot CLI / SDK standard)
 
-#### Official Marketplace
+[`hooks/run-hook.cmd`](hooks/run-hook.cmd) is a polyglot file: line 1 (`: << 'CMDBLOCK'`) is a no-op heredoc in bash, allowing Windows batch syntax to live inside the same file. On Windows, `cmd.exe` ignores the bash framing and locates `bash.exe` (Git for Windows, MSYS2, Cygwin, or PATH). On Unix, bash skips the batch block and execs the named script directly.
 
-- Install the plugin from Anthropic's official marketplace:
+OpenCode can't shell out reliably, so [`.opencode/plugins/snowball.js`](.opencode/plugins/snowball.js) does the same job in JS — reads the SKILL.md, strips frontmatter inline (no YAML dependency), caches the result module-level, and injects the bootstrap as the first text part of the first user message. A guard (`includes('EXTREMELY_IMPORTANT')`) prevents double-injection when OpenCode re-runs the transform per agent step.
 
-  ```bash
-  /plugin install snowball@claude-plugins-official
-  ```
+## Skills index
 
-#### Snowball Marketplace
+14 skills in four groups. Each links to its `SKILL.md`.
 
-The Snowball marketplace provides Snowball and some other related plugins for Claude Code.
+### Bootstrap
 
-- Register the marketplace:
+- [`using-snowball`](skills/using-snowball/SKILL.md) — the entry-point skill loaded into every session by the bootstrap hook. Sets the "check skills before responding" discipline; defines instruction priority (user > skills > default system prompt); includes tool-mapping references for non-Claude-Code harnesses in [`references/`](skills/using-snowball/references/).
 
-  ```bash
-  /plugin marketplace add kellenff/snowball-marketplace
-  ```
+### Process and methodology
 
-- Install the plugin from this marketplace:
+- [`brainstorming`](skills/brainstorming/SKILL.md) — gated design exploration; refuses implementation until a design is presented and approved. Ships a [visual companion](skills/brainstorming/visual-companion.md) (local HTTP server) for diagram-driven design review.
+- [`writing-plans`](skills/writing-plans/SKILL.md) — produces implementation plans before code is written.
+- [`executing-plans`](skills/executing-plans/SKILL.md) — runs an existing plan with review checkpoints.
+- [`test-driven-development`](skills/test-driven-development/SKILL.md) — red/green/refactor enforcement.
+- [`systematic-debugging`](skills/systematic-debugging/SKILL.md) — root-cause-first debugging process.
+- [`verification-before-completion`](skills/verification-before-completion/SKILL.md) — requires running verification commands and confirming output before claiming success.
+- [`finishing-a-development-branch`](skills/finishing-a-development-branch/SKILL.md) — structured merge / PR / cleanup decisions at end of work.
 
-  ```bash
-  /plugin install snowball@snowball-marketplace
-  ```
+### Collaboration
 
-### Codex CLI
+- [`requesting-code-review`](skills/requesting-code-review/SKILL.md) — produces review-ready output.
+- [`receiving-code-review`](skills/receiving-code-review/SKILL.md) — disciplined response to review feedback; no performative agreement.
+- [`subagent-driven-development`](skills/subagent-driven-development/SKILL.md) — orchestrates implementation work across subagents.
+- [`dispatching-parallel-agents`](skills/dispatching-parallel-agents/SKILL.md) — splits independent tasks across parallel agents.
 
-Snowball is available via the [official Codex plugin marketplace](https://github.com/openai/plugins).
+### Infrastructure
 
-- Open the plugin search interface:
+- [`using-git-worktrees`](skills/using-git-worktrees/SKILL.md) — sets up isolated workspaces for feature work.
+- [`writing-skills`](skills/writing-skills/SKILL.md) — meta-skill for creating and adversarially testing new skills.
 
-  ```bash
-  /plugins
-  ```
+## Local setup
 
-- Search for Snowball:
+This repo is for clone-and-link installation, not marketplace distribution. The exact mechanism varies by harness:
 
-  ```bash
-  snowball
-  ```
+```bash
+git clone https://github.com/kellenff/snowball.git ~/Projects/snowball
+```
 
-- Select `Install Plugin`.
+Then install into each harness:
 
-### Codex App
+- **Claude Code** — register the repo as a local marketplace via `/plugin marketplace add /path/to/snowball` and install with `/plugin install snowball@snowball-dev` (the marketplace name is set in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json)). Then run `/reload-plugins`. The hook in [`hooks/hooks.json`](hooks/hooks.json) fires at every `SessionStart`, `/clear`, and `/compact`.
+- **OpenCode** — see [`docs/README.opencode.md`](docs/README.opencode.md). The plugin auto-registers its skills path via [`.opencode/plugins/snowball.js`](.opencode/plugins/snowball.js); no manual symlink is needed.
+- **Cursor, Codex, Gemini CLI, Copilot CLI** — follow each harness's plugin documentation, pointing at this repo's matching manifest (`.cursor-plugin/plugin.json`, `.codex-plugin/plugin.json`, `gemini-extension.json`, `.claude-plugin/plugin.json`).
+- **Windows specifics** — see [`docs/windows/`](docs/windows/). The polyglot [`hooks/run-hook.cmd`](hooks/run-hook.cmd) handles Windows automatically as long as bash is reachable (Git for Windows, MSYS2, Cygwin, or PATH).
 
-Snowball is available via the [official Codex plugin marketplace](https://github.com/openai/plugins).
+Updating after a `git pull`:
 
-- In the Codex app, click on Plugins in the sidebar.
-- You should see `Snowball` in the Coding section.
-- Click the `+` next to Snowball and follow the prompts.
+```bash
+cd ~/Projects/snowball
+git pull
+# In Claude Code: /reload-plugins
+```
 
-### Factory Droid
+Version bumps across the six manifests (Claude, Codex, Cursor, OpenCode, Gemini, marketplace) are driven by [`scripts/bump-version.sh`](scripts/bump-version.sh) reading [`.version-bump.json`](.version-bump.json).
 
-- Register the marketplace:
+## Pointers
 
-  ```bash
-  droid plugin marketplace add https://github.com/kellenff/snowball
-  ```
+- [`CLAUDE.md`](CLAUDE.md), [`AGENTS.md`](AGENTS.md), [`GEMINI.md`](GEMINI.md) — per-harness context files. AGENTS.md is a symlink to CLAUDE.md.
+- [`docs/testing.md`](docs/testing.md) — what each test grouping under `tests/` covers and how to run it.
+- [`docs/README.opencode.md`](docs/README.opencode.md) — OpenCode-specific setup and behavior notes.
+- [`docs/windows/`](docs/windows/) — Windows-specific install and bootstrap notes.
+- [`docs/snowball/specs/`](docs/snowball/specs/), [`docs/snowball/plans/`](docs/snowball/plans/), [`docs/plans/`](docs/plans/) — historical design specs and implementation plans inherited from upstream.
+- [`RELEASE-NOTES.md`](RELEASE-NOTES.md) — upstream release history through v5.1.0.
+- `.claude/grfp/` — the four reports (deep-dive, crystal-ball, think-tank, brain-jam) that produced this README.
 
-- Install the plugin:
+## License and attribution
 
-  ```bash
-  droid plugin install snowball@snowball
-  ```
+MIT, inherited from upstream. See [`LICENSE`](LICENSE).
 
-### Gemini CLI
-
-- Install the extension:
-
-  ```bash
-  gemini extensions install https://github.com/kellenff/snowball
-  ```
-
-- Update later:
-
-  ```bash
-  gemini extensions update snowball
-  ```
-
-### OpenCode
-
-OpenCode uses its own plugin install; install Snowball separately even if you
-already use it in another harness.
-
-- Tell OpenCode:
-
-  ```
-  Fetch and follow instructions from https://raw.githubusercontent.com/kellenff/snowball/refs/heads/main/.opencode/INSTALL.md
-  ```
-
-- Detailed docs: [docs/README.opencode.md](docs/README.opencode.md)
-
-### Cursor
-
-- In Cursor Agent chat, install from marketplace:
-
-  ```text
-  /add-plugin snowball
-  ```
-
-- Or search for "snowball" in the plugin marketplace.
-
-### GitHub Copilot CLI
-
-- Register the marketplace:
-
-  ```bash
-  copilot plugin marketplace add kellenff/snowball-marketplace
-  ```
-
-- Install the plugin:
-
-  ```bash
-  copilot plugin install snowball@snowball-marketplace
-  ```
-
-## The Basic Workflow
-
-1. **brainstorming** - Activates before writing code. Refines rough ideas through questions, explores alternatives, presents design in sections for validation. Saves design document.
-
-2. **using-git-worktrees** - Activates after design approval. Creates isolated workspace on new branch, runs project setup, verifies clean test baseline.
-
-3. **writing-plans** - Activates with approved design. Breaks work into bite-sized tasks (2-5 minutes each). Every task has exact file paths, complete code, verification steps.
-
-4. **subagent-driven-development** or **executing-plans** - Activates with plan. Dispatches fresh subagent per task with two-stage review (spec compliance, then code quality), or executes in batches with human checkpoints.
-
-5. **test-driven-development** - Activates during implementation. Enforces RED-GREEN-REFACTOR: write failing test, watch it fail, write minimal code, watch it pass, commit. Deletes code written before tests.
-
-6. **requesting-code-review** - Activates between tasks. Reviews against plan, reports issues by severity. Critical issues block progress.
-
-7. **finishing-a-development-branch** - Activates when tasks complete. Verifies tests, presents options (merge/PR/keep/discard), cleans up worktree.
-
-**The agent checks for relevant skills before any task.** Mandatory workflows, not suggestions.
-
-## What's Inside
-
-### Skills Library
-
-**Testing**
-- **test-driven-development** - RED-GREEN-REFACTOR cycle (includes testing anti-patterns reference)
-
-**Debugging**
-- **systematic-debugging** - 4-phase root cause process (includes root-cause-tracing, defense-in-depth, condition-based-waiting techniques)
-- **verification-before-completion** - Ensure it's actually fixed
-
-**Collaboration** 
-- **brainstorming** - Socratic design refinement
-- **writing-plans** - Detailed implementation plans
-- **executing-plans** - Batch execution with checkpoints
-- **dispatching-parallel-agents** - Concurrent subagent workflows
-- **requesting-code-review** - Pre-review checklist
-- **receiving-code-review** - Responding to feedback
-- **using-git-worktrees** - Parallel development branches
-- **finishing-a-development-branch** - Merge/PR decision workflow
-- **subagent-driven-development** - Fast iteration with two-stage review (spec compliance, then code quality)
-
-**Meta**
-- **writing-skills** - Create new skills following best practices (includes testing methodology)
-- **using-snowball** - Introduction to the skills system
-
-## Philosophy
-
-- **Test-Driven Development** - Write tests first, always
-- **Systematic over ad-hoc** - Process over guessing
-- **Complexity reduction** - Simplicity as primary goal
-- **Evidence over claims** - Verify before declaring success
-
-Read [the original release announcement](https://blog.fsck.com/2025/10/09/superpowers/).
-
-## Contributing
-
-The general contribution process for Snowball is below. Keep in mind that we don't generally accept contributions of new skills and that any updates to skills must work across all of the coding agents we support.
-
-1. Fork the repository
-2. Switch to the 'dev' branch
-3. Create a branch for your work
-4. Follow the `writing-skills` skill for creating and testing new and modified skills
-5. Submit a PR, being sure to fill in the pull request template.
-
-See `skills/writing-skills/SKILL.md` for the complete guide.
-
-## Updating
-
-Snowball updates are somewhat coding-agent dependent, but are often automatic.
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Community
-
-Snowball is built by [Jesse Vincent](https://blog.fsck.com) and the rest of the folks at [Prime Radiant](https://primeradiant.com).
-
-- **Discord**: [Join us](https://discord.gg/35wsABTejz) for community support, questions, and sharing what you're building with Snowball
-- **Issues**: https://github.com/kellenff/snowball/issues
-- **Release announcements**: [Sign up](https://primeradiant.com/snowball/) to get notified about new versions
+Snowball is a fork of [`obra/superpowers`](https://github.com/obra/superpowers) by Jesse Vincent and the team at [Prime Radiant](https://primeradiant.com). All skill content, the bootstrap design, and the multi-harness adapter pattern originate there. This fork exists for personal maintenance; substantive credit belongs upstream.
