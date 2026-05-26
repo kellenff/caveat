@@ -401,8 +401,8 @@ if [ "$uninstall" -eq 1 ]; then
     hooks_uninstall || rc=1
 
     # Remove empty .gitlab/duo and .gitlab dirs if we own them
-    rmdir "$target/.gitlab/duo" 2>/dev/null && echo "  removed empty .gitlab/duo/" || true
-    rmdir "$target/.gitlab" 2>/dev/null && echo "  removed empty .gitlab/" || true
+    if rmdir "$target/.gitlab/duo" 2>/dev/null; then echo "  removed empty .gitlab/duo/"; fi
+    if rmdir "$target/.gitlab" 2>/dev/null; then echo "  removed empty .gitlab/"; fi
 
     exit $rc
 fi

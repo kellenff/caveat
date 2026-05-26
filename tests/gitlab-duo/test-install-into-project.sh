@@ -42,7 +42,7 @@ echo "  [PASS] AGENTS.md, per-skill symlinks, and hooks.json all created"
 echo
 echo "Test 2: generated hooks.json command emits Duo-shaped JSON..."
 cmd=$(python3 -c "import json; print(json.load(open('$tmp/.gitlab/duo/hooks.json'))['hooks']['SessionStart'][0]['hooks'][0]['command'])")
-out=$(DUO_SESSION_ID=test bash -c "$cmd")
+out=$(env DUO_SESSION_ID=test bash -c "$cmd")
 echo "$out" | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
