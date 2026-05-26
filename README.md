@@ -122,7 +122,7 @@ Then install into each harness:
 - **Claude Code** — register the repo as a local marketplace via `/plugin marketplace add /path/to/snowball` and install with `/plugin install snowball@snowball-dev` (the marketplace name is set in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json)). Then run `/reload-plugins`. The hook in [`hooks/hooks.json`](hooks/hooks.json) fires at every `SessionStart`, `/clear`, and `/compact`.
 - **OpenCode** — see [`docs/README.opencode.md`](docs/README.opencode.md). The plugin auto-registers its skills path via [`.opencode/plugins/snowball.js`](.opencode/plugins/snowball.js); no manual symlink is needed.
 - **Cursor, Codex, Gemini CLI, Copilot CLI** — follow each harness's plugin documentation, pointing at this repo's matching manifest (`.cursor-plugin/plugin.json`, `.codex-plugin/plugin.json`, `gemini-extension.json`, `.claude-plugin/plugin.json`).
-- **GitLab Duo** — clone-and-link only. Non-CLI Duo surfaces (Agentic Chat, Agent Platform Flows) auto-read [`AGENTS.md`](AGENTS.md) and discover skills under `skills/<name>/SKILL.md` natively. Duo CLI users who want the dynamic SessionStart bootstrap must launch with `--enable-project-hooks` (or set `GITLAB_ENABLE_PROJECT_HOOKS=true`); the hook is registered in [`.gitlab/duo/hooks.json`](.gitlab/duo/hooks.json). See the [Duo CLI docs](https://docs.gitlab.com/user/gitlab_duo_cli/) for the experimental-flag caveats.
+- **GitLab Duo** — see [`docs/README.gitlab-duo.md`](docs/README.gitlab-duo.md) for the full project-level and user-level (cross-project) install paths. Short version: Duo reads `AGENTS.md`, `skills/<name>/SKILL.md`, and `.gitlab/duo/hooks.json` from the repo root, so the in-repo install ("just open Duo in this clone") needs no setup. Cross-project use installs the same files under `~/.gitlab/duo/`. Duo CLI users who want the dynamic SessionStart bootstrap must launch with `--enable-project-hooks` (or set `GITLAB_ENABLE_PROJECT_HOOKS=true`).
 - **Windows specifics** — see [`docs/windows/`](docs/windows/). The polyglot [`hooks/run-hook.cmd`](hooks/run-hook.cmd) handles Windows automatically as long as bash is reachable (Git for Windows, MSYS2, Cygwin, or PATH).
 
 Updating after a `git pull`:
@@ -140,6 +140,7 @@ Version bumps across the six manifests (Claude, Codex, Cursor, OpenCode, Gemini,
 - [`AGENTS.md`](AGENTS.md), [`GEMINI.md`](GEMINI.md) — per-harness context files. (No `CLAUDE.md` in this fork; see "Known stale or broken".)
 - [`docs/testing.md`](docs/testing.md) — what each test grouping under `tests/` covers and how to run it.
 - [`docs/README.opencode.md`](docs/README.opencode.md) — OpenCode-specific setup and behavior notes.
+- [`docs/README.gitlab-duo.md`](docs/README.gitlab-duo.md) — GitLab Duo install paths (in-repo and cross-project), CLI hook activation, troubleshooting.
 - [`docs/windows/`](docs/windows/) — Windows-specific install and bootstrap notes.
 - [`docs/snowball/specs/`](docs/snowball/specs/), [`docs/snowball/plans/`](docs/snowball/plans/), [`docs/plans/`](docs/plans/) — historical design specs and implementation plans inherited from upstream.
 - [`RELEASE-NOTES.md`](RELEASE-NOTES.md) — upstream release history through v5.1.0.
