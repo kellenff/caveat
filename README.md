@@ -14,7 +14,7 @@ Snowball is an agentic-skills plugin for multiple AI coding harnesses — Claude
 
 - A markdown-based skills library that loads as agent behavior via session-start context injection.
 - A multi-harness plugin — one `skills/` directory, six per-harness manifests, one shared bootstrap script that adapts its output to each harness's expected JSON shape.
-- Zero runtime dependencies for skill loading. Skills are plain markdown; the bootstrap is one bash file. The exception: the `brainstorming` skill ships a local Node HTTP server for its visual companion (`skills/brainstorming/scripts/server.cjs`) — Node is required for that skill, not for the rest of the library.
+- Zero runtime dependencies for skill loading. Skills are plain markdown; the bootstrap is one bash file. Exceptions: the `brainstorming` skill ships a local Node HTTP server for its visual companion (`skills/brainstorming/scripts/server.cjs`) — Node is required for that skill, stdlib only. The `decision-logging` skill (Phase 1 fork divergence; see `docs/snowball/specs/2026-05-25-decision-logging-design.md`) requires Node plus a single npm dep (`js-yaml`); run `npm install` at the snowball root after cloning if you want decision-log capture to work.
 
 ### What this isn't
 
