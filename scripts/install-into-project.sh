@@ -108,7 +108,38 @@ if [ "$uninstall" -eq 1 ]; then
     echo "Uninstalling Snowball from $target"
     rc=0
     remove_with_confirmation "$target/AGENTS.md" "AGENTS.md" "$SNOWBALL_ROOT/AGENTS.md" || rc=1
-    remove_with_confirmation "$target/skills" "skills/" "$SNOWBALL_ROOT/skills" || rc=1
+
+    # skills/: handle both the legacy whole-directory symlink and the per-skill model.
+    if [ -L "$target/skills" ]; then
+        if is_snowball_symlink "$target/skills" "$SNOWBALL_ROOT/skills"; then
+            rm -f "$target/skills"
+            echo "  removed skills/ symlink (legacy whole-directory install)"
+        elif [ "$force" -eq 1 ]; then
+            rm -f "$target/skills"
+            echo "  removed (--force) skills/ symlink: $target/skills"
+        else
+            echo "  refusing to remove skills/ symlink (not a Snowball symlink): $target/skills" >&2
+            rc=1
+        fi
+    elif [ -d "$target/skills" ]; then
+        removed_skills=0
+        for entry in "$target"/skills/*; do
+            [ -e "$entry" ] || [ -L "$entry" ] || continue
+            name="$(basename "$entry")"
+            if [ -L "$entry" ] && is_snowball_symlink "$entry" "$SNOWBALL_ROOT/skills/$name"; then
+                rm -f "$entry"
+                removed_skills=$((removed_skills + 1))
+            fi
+        done
+        if [ "$removed_skills" -gt 0 ]; then
+            echo "  removed $removed_skills Snowball skill symlink(s) from skills/"
+        fi
+        if rmdir "$target/skills" 2>/dev/null; then
+            echo "  removed empty skills/"
+        else
+            echo "  preserved skills/ (contains project-defined entries)"
+        fi
+    fi
 
     hooks_file="$target/.gitlab/duo/hooks.json"
     if [ -f "$hooks_file" ]; then
@@ -161,9 +192,59 @@ install_symlink() {
 install_symlink "$SNOWBALL_ROOT/AGENTS.md" "$target/AGENTS.md" "AGENTS.md" || exit 1
 
 if [ "$install_skills" -eq 1 ]; then
-    install_symlink "$SNOWBALL_ROOT/skills" "$target/skills" "skills/" || exit 1
+    # Per-skill symlinks under <target>/skills/. Project-defined skill directories
+    # (anything that isn't a Snowball symlink) are preserved — they represent
+    # intentional local overrides and take priority over Snowball's defaults.
+
+    # Migrate legacy whole-directory symlink, if present.
+    if [ -L "$target/skills" ]; then
+        if is_snowball_symlink "$target/skills" "$SNOWBALL_ROOT/skills"; then
+            rm -f "$target/skills"
+            echo "  migrated legacy whole-directory skills symlink to per-skill model"
+        elif [ "$force" -eq 1 ]; then
+            rm -f "$target/skills"
+            echo "  removed (--force) existing skills/ symlink"
+        else
+            echo "error: $target/skills is a symlink to something other than Snowball" >&2
+            echo "       re-run with --force to overwrite, or remove the link first" >&2
+            exit 1
+        fi
+    fi
+
+    mkdir -p "$target/skills"
+
+    linked=0
+    already=0
+    preserved=0
+    for src_skill in "$SNOWBALL_ROOT"/skills/*/; do
+        [ -d "$src_skill" ] || continue
+        name="$(basename "$src_skill")"
+        src="$SNOWBALL_ROOT/skills/$name"
+        dst="$target/skills/$name"
+
+        if [ -L "$dst" ] && is_snowball_symlink "$dst" "$src"; then
+            already=$((already + 1))
+            continue
+        fi
+
+        if [ -e "$dst" ] || [ -L "$dst" ]; then
+            if [ "$force" -eq 1 ]; then
+                rm -rf "$dst"
+                ln -s "$src" "$dst"
+                linked=$((linked + 1))
+            else
+                preserved=$((preserved + 1))
+            fi
+            continue
+        fi
+
+        ln -s "$src" "$dst"
+        linked=$((linked + 1))
+    done
+
+    echo "  skills: $linked linked, $already already in place, $preserved project-defined (kept)"
 else
-    echo "  --no-skills: skipping skills/ symlink (Duo Agent Skills won't be discoverable)"
+    echo "  --no-skills: skipping skills/ symlinks (Duo Agent Skills won't be discoverable)"
 fi
 
 # Generate .gitlab/duo/hooks.json with the absolute Snowball path patched in

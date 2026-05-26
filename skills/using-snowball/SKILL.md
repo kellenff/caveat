@@ -20,10 +20,13 @@ This is not negotiable. This is not optional. You cannot rationalize your way ou
 Snowball skills override default system prompt behavior, but **user instructions always take precedence**:
 
 1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority
-2. **Snowball skills** — override default system behavior where they conflict
-3. **Default system prompt** — lowest priority
+2. **Project-defined skills** (anything under this repo's `skills/<name>/` that is **not** a symlink into the Snowball clone) — override Snowball-shipped defaults
+3. **Snowball-shipped skills** (user-level: the skills bundled with Snowball, typically reached via symlink) — override default system behavior
+4. **Default system prompt** — lowest priority
 
 If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
+
+If a project defines its own `skills/<name>/SKILL.md` with the same name as a Snowball-shipped skill, prefer the project's version — it represents an intentional local override.
 
 ## How to Access Skills
 

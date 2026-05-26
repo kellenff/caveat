@@ -5,10 +5,11 @@ This repository is [Snowball](https://github.com/kellenff/snowball), a skills li
 ## Instruction priority
 
 1. **User's explicit instructions** (this file, harness-specific context files, direct requests) — highest priority.
-2. **Snowball skills** under `skills/<name>/SKILL.md` — override default system behavior where they conflict.
-3. **Default system prompt** — lowest priority.
+2. **Project-defined skills** — any `skills/<name>/SKILL.md` in this repository that is **not** a symlink into the Snowball clone. These represent intentional local overrides and win over Snowball's defaults.
+3. **Snowball-shipped skills** — the skills bundled with Snowball (typically reached via symlink, installable via `scripts/install-into-project.sh`).
+4. **Default system prompt** — lowest priority.
 
-If a user instruction conflicts with a skill, follow the user.
+If a user instruction conflicts with a skill, follow the user. If a project-defined skill conflicts with a Snowball-shipped skill of the same name, follow the project's.
 
 ## Skills come first
 

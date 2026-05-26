@@ -53,8 +53,31 @@ cd ~/work/my-project
 This creates:
 
 - `AGENTS.md` → symlink to the Snowball `AGENTS.md`.
-- `skills/` → symlink to the Snowball `skills/` directory (so Duo's Agent Skills discovery finds them).
+- `skills/` → real directory containing one symlink per Snowball skill (`skills/brainstorming` → `<snowball>/skills/brainstorming`, etc.). Snowball does **not** symlink the entire `skills/` directory — it links each skill individually so the project can have its own `skills/<custom-skill>/` alongside Snowball's.
 - `.gitlab/duo/hooks.json` → generated fresh with the **absolute path** to your Snowball clone's `hooks/run-hook.cmd` patched in. This avoids the `$DUO_PROJECT_DIR` pitfall — Duo sets that variable to the target project, not to Snowball, so a literal copy of the in-repo `hooks.json` wouldn't find the bootstrap script.
+
+### Project-defined skills coexist with Snowball's
+
+The per-skill linking model lets a project define its own skills next to Snowball's:
+
+```
+<project>/skills/
+├── brainstorming           → symlink to <snowball>/skills/brainstorming
+├── test-driven-development → symlink to <snowball>/skills/test-driven-development
+├── ...                     → (the rest of Snowball's skills, all symlinked)
+└── my-deploy-workflow/     → real directory: a project-defined skill
+    └── SKILL.md
+```
+
+If a project already has its own `skills/<name>/` with the **same name** as a Snowball skill, the installer leaves the project's version alone — that's an intentional local override. The using-snowball framing tells agents to prefer project-defined skills over Snowball-shipped ones when both could apply (see [`AGENTS.md`](../AGENTS.md) and [`skills/using-snowball/SKILL.md`](../skills/using-snowball/SKILL.md), "Instruction Priority").
+
+A summary line at the end of install lists how many skills were linked, how many were already in place, and how many project-defined skills were preserved.
+
+### Migrating from the previous whole-directory symlink
+
+Early versions of this installer symlinked the entire `skills/` directory in one step. Re-running the current installer over a target that has the old symlink auto-migrates it to the per-skill model — no manual cleanup required. `--uninstall` also handles both formats.
+
+### Flags and uninstall
 
 Re-running the installer is idempotent. Other useful flags:
 
@@ -65,9 +88,7 @@ install-into-project.sh --uninstall           # remove only the artifacts this s
 install-into-project.sh /path/to/other/proj   # explicit target path instead of $PWD
 ```
 
-The `--uninstall` step is safe: it only removes files it recognises as Snowball-owned (symlinks pointing at this clone, and a `hooks.json` containing this clone's absolute path). User-owned files at the same paths are left alone unless you pass `--force`.
-
-If the target already contains a `skills/` directory or an `AGENTS.md`, the installer refuses without `--force` so user content isn't clobbered.
+`--uninstall` is safe: it removes only files it recognises as Snowball-owned — per-skill symlinks whose target resolves into the Snowball clone, an `AGENTS.md` symlink pointing at Snowball, and a `hooks.json` containing this clone's absolute path. User-owned files at the same paths are left alone unless you pass `--force`. The `skills/` directory itself is preserved if any project-defined skills remain inside it.
 
 ## Install path C: cross-project (user-level config)
 
