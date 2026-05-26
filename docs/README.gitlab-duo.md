@@ -41,9 +41,37 @@ Duo will:
 
 Verify by asking Duo: "What is Snowball?" — it should describe the skills library.
 
-## Install path B: cross-project (user-level)
+## Install path B: into another project (recommended for cross-project use)
 
-Use this when you want Snowball to apply across all your projects, not just inside the Snowball clone. Duo reads per-user files from `~/.gitlab/duo/` on Linux/macOS and `%APPDATA%\GitLab\duo\` on Windows. User-level files merge with whatever the project repo provides; Snowball can live entirely at user level.
+When you want Snowball framing applied to a project other than the Snowball clone itself, use the bundled installer. It auto-detects both the Snowball clone (from its own location) and the target project (from `$PWD` or a path argument):
+
+```bash
+cd ~/work/my-project
+~/Projects/snowball/scripts/install-into-project.sh
+```
+
+This creates:
+
+- `AGENTS.md` → symlink to the Snowball `AGENTS.md`.
+- `skills/` → symlink to the Snowball `skills/` directory (so Duo's Agent Skills discovery finds them).
+- `.gitlab/duo/hooks.json` → generated fresh with the **absolute path** to your Snowball clone's `hooks/run-hook.cmd` patched in. This avoids the `$DUO_PROJECT_DIR` pitfall — Duo sets that variable to the target project, not to Snowball, so a literal copy of the in-repo `hooks.json` wouldn't find the bootstrap script.
+
+Re-running the installer is idempotent. Other useful flags:
+
+```bash
+install-into-project.sh --no-skills           # AGENTS.md + hooks.json only (don't touch skills/)
+install-into-project.sh --force               # overwrite existing files / symlinks
+install-into-project.sh --uninstall           # remove only the artifacts this script created
+install-into-project.sh /path/to/other/proj   # explicit target path instead of $PWD
+```
+
+The `--uninstall` step is safe: it only removes files it recognises as Snowball-owned (symlinks pointing at this clone, and a `hooks.json` containing this clone's absolute path). User-owned files at the same paths are left alone unless you pass `--force`.
+
+If the target already contains a `skills/` directory or an `AGENTS.md`, the installer refuses without `--force` so user content isn't clobbered.
+
+## Install path C: cross-project (user-level config)
+
+Use this when you want Snowball framing applied across **every** project without per-project install. Duo reads per-user files from `~/.gitlab/duo/` on Linux/macOS and `%APPDATA%\GitLab\duo\` on Windows. User-level files merge with whatever the project repo provides.
 
 ### Linux / macOS
 
@@ -82,15 +110,13 @@ $snowballPath = "$HOME\Projects\snowball" -replace '\\', '/'
   | Set-Content "$duoDir\hooks.json"
 ```
 
-### Skills discovery for cross-project
+### Skills discovery for cross-project (user-level)
 
 Duo discovers Agent Skills from `skills/<name>/SKILL.md` at the **project root**, not from user-level config. To make Snowball's skills available cross-project, either:
 
-- keep working inside the Snowball clone (path A); or
-- symlink the Snowball `skills/` directory into each project that needs it: `ln -s ~/Projects/snowball/skills <your-project>/skills` (only safe if your project doesn't already have a `skills/` directory); or
+- keep working inside the Snowball clone (path A);
+- run `scripts/install-into-project.sh` in each project that needs them (path B); or
 - rely on the `AGENTS.md` framing alone, which carries the priority and skill-discovery instructions even without the SKILL.md files being discovered.
-
-A future Snowball release may add user-level skill discovery once Duo documents that surface.
 
 ## Duo CLI: enabling the SessionStart hook
 

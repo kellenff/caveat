@@ -46,7 +46,7 @@ These are real artifacts in the repo that haven't been reconciled with the fork'
 | `gemini-extension.json` | Gemini CLI extension manifest. |
 | `AGENTS.md` | Cross-tool context file read by Codex, Cursor, Copilot CLI, OpenCode, and GitLab Duo's non-CLI surfaces. |
 | `assets/` | App icon and Codex composer SVG. |
-| `scripts/` | `bump-version.sh` (cross-manifest semver bumper driven by `.version-bump.json`) and `sync-to-codex-plugin.sh` (currently stale — see above). |
+| `scripts/` | `bump-version.sh` (cross-manifest semver bumper driven by `.version-bump.json`), `install-into-project.sh` (symlinks Snowball into a local project for GitLab Duo / cross-tool `AGENTS.md`), and `sync-to-codex-plugin.sh` (currently stale — see above). |
 | `tests/` | Seven test groupings: harness-specific bootstrap tests, Codex-sync verification, skill-triggering evals, SDD end-to-end runs against example scaffolds. |
 | `docs/` | Setup notes (`README.opencode.md`, `windows/`), testing notes (`testing.md`), and historical design docs under `snowball/`. |
 | `AGENTS.md`, `GEMINI.md` | Per-harness context files loaded by each agent at session start. (`CLAUDE.md` is not present in this fork — see "Known stale or broken" above.) |
@@ -122,7 +122,7 @@ Then install into each harness:
 - **Claude Code** — register the repo as a local marketplace via `/plugin marketplace add /path/to/snowball` and install with `/plugin install snowball@snowball-dev` (the marketplace name is set in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json)). Then run `/reload-plugins`. The hook in [`hooks/hooks.json`](hooks/hooks.json) fires at every `SessionStart`, `/clear`, and `/compact`.
 - **OpenCode** — see [`docs/README.opencode.md`](docs/README.opencode.md). The plugin auto-registers its skills path via [`.opencode/plugins/snowball.js`](.opencode/plugins/snowball.js); no manual symlink is needed.
 - **Cursor, Codex, Gemini CLI, Copilot CLI** — follow each harness's plugin documentation, pointing at this repo's matching manifest (`.cursor-plugin/plugin.json`, `.codex-plugin/plugin.json`, `gemini-extension.json`, `.claude-plugin/plugin.json`).
-- **GitLab Duo** — see [`docs/README.gitlab-duo.md`](docs/README.gitlab-duo.md) for the full project-level and user-level (cross-project) install paths. Short version: Duo reads `AGENTS.md`, `skills/<name>/SKILL.md`, and `.gitlab/duo/hooks.json` from the repo root, so the in-repo install ("just open Duo in this clone") needs no setup. Cross-project use installs the same files under `~/.gitlab/duo/`. Duo CLI users who want the dynamic SessionStart bootstrap must launch with `--enable-project-hooks` (or set `GITLAB_ENABLE_PROJECT_HOOKS=true`).
+- **GitLab Duo** — see [`docs/README.gitlab-duo.md`](docs/README.gitlab-duo.md) for the full install paths. Short version: from inside a target project, run [`scripts/install-into-project.sh`](scripts/install-into-project.sh) from this clone — it symlinks `AGENTS.md` and `skills/` and generates `.gitlab/duo/hooks.json` with the absolute Snowball path patched in. The script auto-detects the Snowball clone from its own path and the target from `$PWD`, so no hard-coded locations. Duo CLI users still need to launch with `--enable-project-hooks` for the SessionStart hook to fire.
 - **Windows specifics** — see [`docs/windows/`](docs/windows/). The polyglot [`hooks/run-hook.cmd`](hooks/run-hook.cmd) handles Windows automatically as long as bash is reachable (Git for Windows, MSYS2, Cygwin, or PATH).
 
 Updating after a `git pull`:
