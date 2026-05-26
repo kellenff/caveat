@@ -1,0 +1,10 @@
+{
+  "name": "decision-logging-tests",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node --test approval-phrases.test.cjs write-madr.test.cjs append-observation.test.cjs"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}
