@@ -73,6 +73,16 @@ if [ "$target" = "$SNOWBALL_ROOT" ]; then
     exit 1
 fi
 
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "error: python3 is required (used for AGENTS.md and hooks.json merging)" >&2
+    exit 1
+fi
+
+# Sentinel markers identifying the Snowball-managed block inside a user-owned
+# AGENTS.md. HTML comments are valid markdown and render as nothing.
+AGENTS_MARKER_BEGIN="<!-- snowball:agents:begin (managed block; do not edit between markers) -->"
+AGENTS_MARKER_END="<!-- snowball:agents:end -->"
+
 # --- helpers ---
 
 is_snowball_symlink() {
@@ -84,6 +94,253 @@ is_snowball_symlink() {
         "$expected"|"$expected/") return 0 ;;
         *) return 1 ;;
     esac
+}
+
+# Merge the Snowball block into an existing AGENTS.md (or create as symlink
+# if the target doesn't exist). Idempotent.
+agents_install() {
+    local src="$SNOWBALL_ROOT/AGENTS.md"
+    local dst="$target/AGENTS.md"
+
+    if [ ! -e "$dst" ] && [ ! -L "$dst" ]; then
+        ln -s "$src" "$dst"
+        echo "  linked AGENTS.md → $src"
+        return 0
+    fi
+
+    if [ -L "$dst" ]; then
+        if is_snowball_symlink "$dst" "$src"; then
+            echo "  AGENTS.md already linked"
+            return 0
+        fi
+        if [ "$force" -eq 1 ]; then
+            rm -f "$dst"
+            ln -s "$src" "$dst"
+            echo "  replaced (--force) AGENTS.md symlink with Snowball symlink"
+            return 0
+        fi
+        echo "error: $dst is a symlink to something other than Snowball" >&2
+        echo "       re-run with --force to replace, or convert it to a regular file first" >&2
+        return 1
+    fi
+
+    # Regular file with user content.
+    if [ "$force" -eq 1 ]; then
+        rm -f "$dst"
+        ln -s "$src" "$dst"
+        echo "  replaced (--force) AGENTS.md with Snowball symlink"
+        return 0
+    fi
+
+    # Default: merge a marked block in place.
+    SNOWBALL_AGENTS_DST="$dst" \
+    SNOWBALL_AGENTS_SRC="$src" \
+    SNOWBALL_MARKER_BEGIN="$AGENTS_MARKER_BEGIN" \
+    SNOWBALL_MARKER_END="$AGENTS_MARKER_END" \
+    python3 - <<'PY'
+import os, re
+dst = os.environ['SNOWBALL_AGENTS_DST']
+src = os.environ['SNOWBALL_AGENTS_SRC']
+mb  = os.environ['SNOWBALL_MARKER_BEGIN']
+me  = os.environ['SNOWBALL_MARKER_END']
+
+with open(dst, 'r', encoding='utf-8') as f:
+    content = f.read()
+with open(src, 'r', encoding='utf-8') as f:
+    snowball = f.read().rstrip() + '\n'
+
+block = f"{mb}\n\n{snowball}\n{me}"
+pattern = re.compile(re.escape(mb) + r'.*?' + re.escape(me), re.DOTALL)
+
+if pattern.search(content):
+    new_content = pattern.sub(block, content)
+    action = "updated"
+else:
+    sep = '' if content.endswith('\n\n') else ('\n' if content.endswith('\n') else '\n\n')
+    new_content = content + sep + block + '\n'
+    action = "appended"
+
+if new_content == content:
+    print("  AGENTS.md Snowball block already up to date")
+else:
+    with open(dst, 'w', encoding='utf-8') as f:
+        f.write(new_content)
+    print(f"  {action} Snowball block in existing AGENTS.md (user content preserved)")
+PY
+}
+
+# Inverse of agents_install: remove the marked block, or remove the symlink.
+agents_uninstall() {
+    local src="$SNOWBALL_ROOT/AGENTS.md"
+    local dst="$target/AGENTS.md"
+
+    if [ ! -e "$dst" ] && [ ! -L "$dst" ]; then
+        return 0
+    fi
+
+    if [ -L "$dst" ]; then
+        if is_snowball_symlink "$dst" "$src"; then
+            rm -f "$dst"
+            echo "  removed AGENTS.md symlink"
+            return 0
+        fi
+        if [ "$force" -eq 1 ]; then
+            rm -f "$dst"
+            echo "  removed (--force) AGENTS.md symlink (target was not Snowball)"
+            return 0
+        fi
+        echo "  preserving AGENTS.md (symlink to non-Snowball target): $dst"
+        return 0
+    fi
+
+    if grep -qF "$AGENTS_MARKER_BEGIN" "$dst" 2>/dev/null; then
+        SNOWBALL_AGENTS_DST="$dst" \
+        SNOWBALL_MARKER_BEGIN="$AGENTS_MARKER_BEGIN" \
+        SNOWBALL_MARKER_END="$AGENTS_MARKER_END" \
+        python3 - <<'PY'
+import os, re
+dst = os.environ['SNOWBALL_AGENTS_DST']
+mb  = os.environ['SNOWBALL_MARKER_BEGIN']
+me  = os.environ['SNOWBALL_MARKER_END']
+
+with open(dst, 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# Strip the marked block plus any surrounding blank lines so the file
+# isn't left with a hole.
+pattern = re.compile(r'\n*' + re.escape(mb) + r'.*?' + re.escape(me) + r'\n*', re.DOTALL)
+new_content = pattern.sub('\n\n', content).strip('\n')
+
+if new_content:
+    with open(dst, 'w', encoding='utf-8') as f:
+        f.write(new_content + '\n')
+    print("  removed Snowball block from AGENTS.md (user content preserved)")
+else:
+    os.remove(dst)
+    print("  removed AGENTS.md (file was Snowball-only after block removal)")
+PY
+        return 0
+    fi
+
+    if [ "$force" -eq 1 ]; then
+        rm -f "$dst"
+        echo "  removed (--force) AGENTS.md (no Snowball marker found)"
+    else
+        echo "  preserving AGENTS.md (no Snowball marker; not Snowball-owned): $dst"
+    fi
+}
+
+# Merge our SessionStart entry into the project's .gitlab/duo/hooks.json.
+# Creates the file if missing; preserves any existing user hooks.
+hooks_install() {
+    local hooks_dir="$target/.gitlab/duo"
+    local dst="$hooks_dir/hooks.json"
+    mkdir -p "$hooks_dir"
+
+    SNOWBALL_HOOKS_DST="$dst" \
+    SNOWBALL_ROOT="$SNOWBALL_ROOT" \
+    python3 - <<'PY'
+import json, os, sys
+dst = os.environ['SNOWBALL_HOOKS_DST']
+snowball = os.environ['SNOWBALL_ROOT']
+command = f'"{snowball}/hooks/run-hook.cmd" session-start'
+
+if os.path.exists(dst):
+    with open(dst, 'r', encoding='utf-8') as f:
+        try:
+            data = json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"error: {dst} is not valid JSON: {e}", file=sys.stderr)
+            sys.exit(1)
+    pre_existing = True
+else:
+    data = {}
+    pre_existing = False
+
+hooks_root = data.setdefault('hooks', {})
+session_start = hooks_root.setdefault('SessionStart', [])
+
+# Already-installed detection: any entry whose hooks include our exact command.
+for matcher_entry in session_start:
+    for h in matcher_entry.get('hooks', []):
+        if h.get('command') == command:
+            print(f"  hooks.json: Snowball SessionStart entry already present (no change)")
+            sys.exit(0)
+
+new_entry = {
+    "matcher": "startup|resume|clear",
+    "hooks": [
+        {"type": "command", "command": command}
+    ]
+}
+session_start.append(new_entry)
+
+with open(dst, 'w', encoding='utf-8') as f:
+    json.dump(data, f, indent=2)
+    f.write('\n')
+
+if pre_existing:
+    print(f"  merged Snowball SessionStart entry into existing hooks.json (other hooks preserved)")
+else:
+    print(f"  wrote .gitlab/duo/hooks.json (bootstrap path: {snowball}/hooks/run-hook.cmd)")
+PY
+}
+
+# Inverse: filter Snowball's SessionStart entry out of hooks.json. Preserves
+# any other entries and any other event types.
+hooks_uninstall() {
+    local dst="$target/.gitlab/duo/hooks.json"
+    [ -f "$dst" ] || return 0
+
+    SNOWBALL_HOOKS_DST="$dst" \
+    SNOWBALL_ROOT="$SNOWBALL_ROOT" \
+    python3 - <<'PY'
+import json, os, sys
+dst = os.environ['SNOWBALL_HOOKS_DST']
+snowball = os.environ['SNOWBALL_ROOT']
+command = f'"{snowball}/hooks/run-hook.cmd" session-start'
+
+with open(dst, 'r', encoding='utf-8') as f:
+    try:
+        data = json.load(f)
+    except json.JSONDecodeError:
+        print(f"  preserving hooks.json (not valid JSON; not modifying): {dst}")
+        sys.exit(0)
+
+removed = 0
+session_start = data.get('hooks', {}).get('SessionStart', [])
+new_session_start = []
+for entry in session_start:
+    kept_hooks = [h for h in entry.get('hooks', []) if h.get('command') != command]
+    if not kept_hooks:
+        # Whole entry was Snowball's
+        removed += 1
+        continue
+    if len(kept_hooks) != len(entry.get('hooks', [])):
+        removed += 1
+    entry['hooks'] = kept_hooks
+    new_session_start.append(entry)
+
+if removed == 0:
+    print("  hooks.json: no Snowball entry found (nothing to remove)")
+    sys.exit(0)
+
+if new_session_start:
+    data['hooks']['SessionStart'] = new_session_start
+else:
+    del data['hooks']['SessionStart']
+    if not data.get('hooks'):
+        data.pop('hooks', None)
+
+if data:
+    with open(dst, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2)
+        f.write('\n')
+    print(f"  removed Snowball entry from hooks.json ({removed}); other hooks preserved")
+else:
+    os.remove(dst)
+    print(f"  removed hooks.json (only Snowball entry was present)")
+PY
 }
 
 remove_with_confirmation() {
@@ -107,7 +364,7 @@ remove_with_confirmation() {
 if [ "$uninstall" -eq 1 ]; then
     echo "Uninstalling Snowball from $target"
     rc=0
-    remove_with_confirmation "$target/AGENTS.md" "AGENTS.md" "$SNOWBALL_ROOT/AGENTS.md" || rc=1
+    agents_uninstall || rc=1
 
     # skills/: handle both the legacy whole-directory symlink and the per-skill model.
     if [ -L "$target/skills" ]; then
@@ -141,19 +398,7 @@ if [ "$uninstall" -eq 1 ]; then
         fi
     fi
 
-    hooks_file="$target/.gitlab/duo/hooks.json"
-    if [ -f "$hooks_file" ]; then
-        if grep -q "$SNOWBALL_ROOT/hooks/run-hook.cmd" "$hooks_file" 2>/dev/null; then
-            rm -f "$hooks_file"
-            echo "  removed generated hooks.json: $hooks_file"
-        elif [ "$force" -eq 1 ]; then
-            rm -f "$hooks_file"
-            echo "  removed (--force) hooks.json: $hooks_file"
-        else
-            echo "  refusing to remove hooks.json (not generated by this script): $hooks_file" >&2
-            rc=1
-        fi
-    fi
+    hooks_uninstall || rc=1
 
     # Remove empty .gitlab/duo and .gitlab dirs if we own them
     rmdir "$target/.gitlab/duo" 2>/dev/null && echo "  removed empty .gitlab/duo/" || true
@@ -167,29 +412,7 @@ fi
 echo "Installing Snowball into $target"
 echo "Snowball clone: $SNOWBALL_ROOT"
 
-install_symlink() {
-    local src="$1" dst="$2" label="$3"
-    if [ ! -e "$src" ]; then
-        echo "  skipping $label (source missing: $src)"
-        return 0
-    fi
-    if [ -e "$dst" ] || [ -L "$dst" ]; then
-        if is_snowball_symlink "$dst" "$src"; then
-            echo "  $label already linked"
-            return 0
-        fi
-        if [ "$force" -ne 1 ]; then
-            echo "error: $dst already exists and is not a Snowball symlink" >&2
-            echo "       re-run with --force to overwrite, or remove the file first" >&2
-            return 1
-        fi
-        rm -rf "$dst"
-    fi
-    ln -s "$src" "$dst"
-    echo "  linked $label → $src"
-}
-
-install_symlink "$SNOWBALL_ROOT/AGENTS.md" "$target/AGENTS.md" "AGENTS.md" || exit 1
+agents_install || exit 1
 
 if [ "$install_skills" -eq 1 ]; then
     # Per-skill symlinks under <target>/skills/. Project-defined skill directories
@@ -247,37 +470,7 @@ else
     echo "  --no-skills: skipping skills/ symlinks (Duo Agent Skills won't be discoverable)"
 fi
 
-# Generate .gitlab/duo/hooks.json with the absolute Snowball path patched in
-mkdir -p "$target/.gitlab/duo"
-hooks_dst="$target/.gitlab/duo/hooks.json"
-
-if [ -e "$hooks_dst" ] && [ "$force" -ne 1 ]; then
-    if grep -q "$SNOWBALL_ROOT/hooks/run-hook.cmd" "$hooks_dst" 2>/dev/null; then
-        echo "  .gitlab/duo/hooks.json already points at this Snowball clone"
-    else
-        echo "error: $hooks_dst already exists; re-run with --force to overwrite" >&2
-        exit 1
-    fi
-else
-    cat >"$hooks_dst" <<EOF
-{
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup|resume|clear",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$SNOWBALL_ROOT/hooks/run-hook.cmd\" session-start"
-          }
-        ]
-      }
-    ]
-  }
-}
-EOF
-    echo "  wrote .gitlab/duo/hooks.json (bootstrap path: $SNOWBALL_ROOT/hooks/run-hook.cmd)"
-fi
+hooks_install || exit 1
 
 cat <<EOF
 

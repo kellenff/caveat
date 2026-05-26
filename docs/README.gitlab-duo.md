@@ -50,11 +50,11 @@ cd ~/work/my-project
 ~/Projects/snowball/scripts/install-into-project.sh
 ```
 
-This creates:
+The installer is **non-destructive by default**: it adds to what's already there rather than overwriting. For each of the three artifacts:
 
-- `AGENTS.md` → symlink to the Snowball `AGENTS.md`.
-- `skills/` → real directory containing one symlink per Snowball skill (`skills/brainstorming` → `<snowball>/skills/brainstorming`, etc.). Snowball does **not** symlink the entire `skills/` directory — it links each skill individually so the project can have its own `skills/<custom-skill>/` alongside Snowball's.
-- `.gitlab/duo/hooks.json` → generated fresh with the **absolute path** to your Snowball clone's `hooks/run-hook.cmd` patched in. This avoids the `$DUO_PROJECT_DIR` pitfall — Duo sets that variable to the target project, not to Snowball, so a literal copy of the in-repo `hooks.json` wouldn't find the bootstrap script.
+- **`AGENTS.md`** — if the target has no `AGENTS.md`, a symlink to Snowball's is created so updates are picked up automatically. If the target already has its own `AGENTS.md`, the installer appends a single block delimited by `<!-- snowball:agents:begin ... -->` markers containing Snowball's framing. Re-running the installer updates the marked block in place without duplicating it; the surrounding user content is preserved verbatim.
+- **`skills/`** — a real directory containing one symlink per Snowball skill (`skills/brainstorming` → `<snowball>/skills/brainstorming`, etc.). Snowball does **not** symlink the entire `skills/` directory; it links each skill individually so the project can keep its own `skills/<custom-skill>/` alongside Snowball's. Project-defined entries with the same name as a Snowball skill are left untouched.
+- **`.gitlab/duo/hooks.json`** — if the file doesn't exist, it's generated with Snowball's `SessionStart` entry. If it exists with user-defined hooks, the installer parses it as JSON and **appends** Snowball's `SessionStart` matcher entry alongside any others — including hooks under other event types like `PreToolUse`, which are left untouched. The Snowball entry's command is the **absolute path** to your Snowball clone's `hooks/run-hook.cmd` (this avoids the `$DUO_PROJECT_DIR` pitfall — Duo sets that variable to the target project, not to Snowball).
 
 ### Project-defined skills coexist with Snowball's
 
@@ -83,12 +83,18 @@ Re-running the installer is idempotent. Other useful flags:
 
 ```bash
 install-into-project.sh --no-skills           # AGENTS.md + hooks.json only (don't touch skills/)
-install-into-project.sh --force               # overwrite existing files / symlinks
+install-into-project.sh --force               # replace user content instead of merging
 install-into-project.sh --uninstall           # remove only the artifacts this script created
 install-into-project.sh /path/to/other/proj   # explicit target path instead of $PWD
 ```
 
-`--uninstall` is safe: it removes only files it recognises as Snowball-owned — per-skill symlinks whose target resolves into the Snowball clone, an `AGENTS.md` symlink pointing at Snowball, and a `hooks.json` containing this clone's absolute path. User-owned files at the same paths are left alone unless you pass `--force`. The `skills/` directory itself is preserved if any project-defined skills remain inside it.
+`--force` switches to a destructive overwrite: a user-owned `AGENTS.md` becomes a Snowball symlink, a non-Snowball `AGENTS.md` symlink is replaced, and an existing `hooks.json` is replaced with a Snowball-only one. The merge behavior is the default; pass `--force` only when you genuinely want to discard what was there.
+
+`--uninstall` is also non-destructive: it removes the per-skill symlinks that resolve into this Snowball clone, the `AGENTS.md` symlink (if it pointed at Snowball) or the marked block (leaving the rest of the file intact), and only the Snowball entry from `hooks.json` (leaving user-defined entries — and other event types — alone). The `skills/` directory itself is preserved if any project-defined skills remain inside it; an `AGENTS.md` is preserved if it had user content outside the marked block.
+
+### python3 requirement
+
+The installer uses `python3` to merge `AGENTS.md` markers and `hooks.json` JSON. It's expected to be available on any Unix-like system. If it isn't, install python3 first or fall back to manual setup (path C below).
 
 ## Install path C: cross-project (user-level config)
 

@@ -59,29 +59,57 @@ echo "Test 3: re-running is idempotent..."
 echo "  [PASS] re-run leaves things in place"
 
 echo
-echo "Test 4: refuse to overwrite non-symlink without --force..."
+echo "Test 4: existing AGENTS.md gets the Snowball block appended (non-destructive)..."
 rm "$tmp/AGENTS.md"
-echo "user content" > "$tmp/AGENTS.md"
-if "$INSTALLER" "$tmp" >/dev/null 2>&1; then
-    echo "  [FAIL] should have refused"; exit 1
-fi
-[ "$(cat "$tmp/AGENTS.md")" = "user content" ] || { echo "  [FAIL] user file was clobbered"; exit 1; }
-echo "  [PASS] refused and left user file alone"
+cat >"$tmp/AGENTS.md" <<'EOF'
+# my-project
+
+Some pre-existing instructions specific to my project.
+EOF
+"$INSTALLER" "$tmp" >/dev/null
+[ -L "$tmp/AGENTS.md" ] && { echo "  [FAIL] non-empty user AGENTS.md was replaced by symlink"; exit 1; }
+grep -qF "Some pre-existing instructions specific to my project." "$tmp/AGENTS.md" \
+    || { echo "  [FAIL] user content lost"; exit 1; }
+grep -qF "snowball:agents:begin" "$tmp/AGENTS.md" \
+    || { echo "  [FAIL] snowball marker not appended"; exit 1; }
+grep -qF "snowball:agents:end" "$tmp/AGENTS.md" \
+    || { echo "  [FAIL] snowball end-marker missing"; exit 1; }
+# Re-run idempotency: same content twice = no second copy of the block
+"$INSTALLER" "$tmp" >/dev/null
+[ "$(grep -cF "snowball:agents:begin" "$tmp/AGENTS.md")" -eq 1 ] \
+    || { echo "  [FAIL] snowball block duplicated on re-run"; exit 1; }
+echo "  [PASS] AGENTS.md merge appended once, preserved user content, idempotent on re-run"
 
 echo
-echo "Test 5: --force overwrites..."
+echo "Test 5: --force replaces a user AGENTS.md with the Snowball symlink..."
 "$INSTALLER" --force "$tmp" >/dev/null
 [ -L "$tmp/AGENTS.md" ] || { echo "  [FAIL] AGENTS.md not relinked"; exit 1; }
-echo "  [PASS] --force replaced user file with symlink"
+[ "$(readlink "$tmp/AGENTS.md")" = "$REPO_ROOT/AGENTS.md" ] || { echo "  [FAIL] symlink target wrong"; exit 1; }
+echo "  [PASS] --force replaced merged file with symlink"
 
 echo
-echo "Test 6: --uninstall removes only snowball-owned artifacts..."
+echo "Test 6: --uninstall removes Snowball artifacts; user content untouched..."
+# Reset state with a user AGENTS.md + merged block, plus user-defined hooks
 "$INSTALLER" --uninstall "$tmp" >/dev/null
-[ ! -e "$tmp/AGENTS.md" ] || { echo "  [FAIL] AGENTS.md still present"; exit 1; }
-[ ! -e "$tmp/skills" ] || { echo "  [FAIL] skills still present"; exit 1; }
-[ ! -e "$tmp/.gitlab/duo/hooks.json" ] || { echo "  [FAIL] hooks.json still present"; exit 1; }
-[ ! -e "$tmp/.gitlab" ] || { echo "  [FAIL] empty .gitlab dir not cleaned up"; exit 1; }
-echo "  [PASS] uninstall removed all snowball artifacts"
+cat >"$tmp/AGENTS.md" <<'EOF'
+# my-project
+
+Project-specific guidance line 1.
+Project-specific guidance line 2.
+EOF
+"$INSTALLER" "$tmp" >/dev/null
+"$INSTALLER" --uninstall "$tmp" >/dev/null
+[ -f "$tmp/AGENTS.md" ] || { echo "  [FAIL] user AGENTS.md was removed during uninstall"; exit 1; }
+[ -L "$tmp/AGENTS.md" ] && { echo "  [FAIL] user file became symlink"; exit 1; }
+grep -qF "Project-specific guidance line 1." "$tmp/AGENTS.md" \
+    || { echo "  [FAIL] user content lost on uninstall"; exit 1; }
+grep -qF "snowball:agents:begin" "$tmp/AGENTS.md" \
+    && { echo "  [FAIL] snowball marker remained after uninstall"; exit 1; }
+[ ! -L "$tmp/skills/using-snowball" ] || { echo "  [FAIL] snowball skill symlink remained"; exit 1; }
+[ ! -e "$tmp/.gitlab/duo/hooks.json" ] || { echo "  [FAIL] hooks.json remained"; exit 1; }
+# Cleanup so later tests start fresh
+rm -f "$tmp/AGENTS.md"
+echo "  [PASS] uninstall removed only Snowball-owned bits"
 
 echo
 echo "Test 7: refuse to install into snowball root..."
@@ -166,7 +194,78 @@ echo
 echo "Test 9: CWD detection (no arg = \$PWD)..."
 (cd "$tmp" && "$INSTALLER" >/dev/null)
 [ -L "$tmp/AGENTS.md" ] || { echo "  [FAIL] AGENTS.md not installed in PWD"; exit 1; }
+"$INSTALLER" --uninstall "$tmp" >/dev/null
 echo "  [PASS] script auto-detects target from PWD"
+
+echo
+echo "Test 14: hooks.json merge preserves user-defined hooks..."
+mkdir -p "$tmp/.gitlab/duo"
+cat >"$tmp/.gitlab/duo/hooks.json" <<'EOF'
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {"type": "command", "command": "echo user-hook"}
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {"type": "command", "command": "echo pretool-hook"}
+        ]
+      }
+    ]
+  }
+}
+EOF
+"$INSTALLER" "$tmp" >/dev/null
+python3 - <<PY
+import json
+d = json.load(open("$tmp/.gitlab/duo/hooks.json"))
+ss = d["hooks"]["SessionStart"]
+assert len(ss) == 2, f"expected 2 SessionStart entries, got {len(ss)}: {ss}"
+assert any(h.get("command") == "echo user-hook" for e in ss for h in e["hooks"]), "user SessionStart hook lost"
+assert any(h.get("command", "").endswith("session-start") for e in ss for h in e["hooks"]), "snowball SessionStart hook missing"
+assert d["hooks"]["PreToolUse"][0]["hooks"][0]["command"] == "echo pretool-hook", "user PreToolUse lost"
+print("  [PASS] merged Snowball entry alongside user hooks; user hooks preserved")
+PY
+
+echo
+echo "Test 15: hooks.json merge is idempotent..."
+"$INSTALLER" "$tmp" >/dev/null
+ss_count=$(python3 -c "import json; print(len(json.load(open('$tmp/.gitlab/duo/hooks.json'))['hooks']['SessionStart']))")
+[ "$ss_count" = "2" ] || { echo "  [FAIL] expected 2 SessionStart entries after re-run, got $ss_count"; exit 1; }
+echo "  [PASS] re-run did not duplicate Snowball entry"
+
+echo
+echo "Test 16: hooks.json uninstall preserves user hooks..."
+"$INSTALLER" --uninstall "$tmp" >/dev/null
+python3 - <<PY
+import json, os
+path = "$tmp/.gitlab/duo/hooks.json"
+assert os.path.exists(path), "user hooks.json was removed"
+d = json.load(open(path))
+ss = d["hooks"]["SessionStart"]
+assert len(ss) == 1, f"expected 1 SessionStart entry after uninstall, got {len(ss)}"
+assert ss[0]["hooks"][0]["command"] == "echo user-hook", "user hook lost"
+assert d["hooks"]["PreToolUse"][0]["hooks"][0]["command"] == "echo pretool-hook", "user PreToolUse lost"
+print("  [PASS] user hooks survived uninstall; Snowball entry removed")
+PY
+rm -rf "$tmp/.gitlab"
+
+echo
+echo "Test 17: AGENTS.md symlink to non-Snowball target is preserved on uninstall..."
+echo "external" > "$tmp/external-agents.md"
+ln -s "$tmp/external-agents.md" "$tmp/AGENTS.md"
+"$INSTALLER" --uninstall "$tmp" >/dev/null
+[ -L "$tmp/AGENTS.md" ] || { echo "  [FAIL] non-Snowball symlink was removed"; exit 1; }
+[ "$(readlink "$tmp/AGENTS.md")" = "$tmp/external-agents.md" ] || { echo "  [FAIL] symlink target changed"; exit 1; }
+rm -f "$tmp/AGENTS.md" "$tmp/external-agents.md"
+echo "  [PASS] uninstall left user's external symlink alone"
 
 echo
 echo "=== All install-into-project.sh tests passed ==="
