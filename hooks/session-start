@@ -3,9 +3,12 @@
 
 set -euo pipefail
 
-# Determine plugin root directory
+# Determine plugin root directory.
+# SNOWBALL_PLUGIN_ROOT overrides the default ($SCRIPT_DIR/..) so the script
+# can be copied out of the Snowball clone into a project (e.g. under
+# .gitlab/duo/hooks/) and still find the using-snowball skill at the project root.
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+PLUGIN_ROOT="${SNOWBALL_PLUGIN_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
 
 # Check if legacy skills directory exists and build warning
 warning_message=""

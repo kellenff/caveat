@@ -50,32 +50,37 @@ cd ~/work/my-project
 ~/Projects/snowball/scripts/install-into-project.sh
 ```
 
-The installer is **non-destructive by default**: it adds to what's already there rather than overwriting. For each of the three artifacts:
+The installer is **non-destructive by default**: it adds to what's already there rather than overwriting. Duo doesn't follow symlinks when discovering `AGENTS.md`, skill directories, or hook scripts, so the installer writes real files in every case. For each artifact:
 
-- **`AGENTS.md`** — if the target has no `AGENTS.md`, a symlink to Snowball's is created so updates are picked up automatically. If the target already has its own `AGENTS.md`, the installer appends a single block delimited by `<!-- snowball:agents:begin ... -->` markers containing Snowball's framing. Re-running the installer updates the marked block in place without duplicating it; the surrounding user content is preserved verbatim.
-- **`skills/`** — a real directory containing one symlink per Snowball skill (`skills/brainstorming` → `<snowball>/skills/brainstorming`, etc.). Snowball does **not** symlink the entire `skills/` directory; it links each skill individually so the project can keep its own `skills/<custom-skill>/` alongside Snowball's. Project-defined entries with the same name as a Snowball skill are left untouched.
-- **`.gitlab/duo/hooks.json`** — if the file doesn't exist, it's generated with Snowball's `SessionStart` entry. If it exists with user-defined hooks, the installer parses it as JSON and **appends** Snowball's `SessionStart` matcher entry alongside any others — including hooks under other event types like `PreToolUse`, which are left untouched. The Snowball entry's command is the **absolute path** to your Snowball clone's `hooks/run-hook.cmd` (this avoids the `$DUO_PROJECT_DIR` pitfall — Duo sets that variable to the target project, not to Snowball).
+- **`AGENTS.md`** — written as a real file (not a symlink) containing Snowball's framing wrapped in `<!-- snowball:agents:begin ... -->` markers. If the target already has its own `AGENTS.md`, the marked block is appended; user content outside the block is preserved verbatim. Re-running the installer updates the marked block in place without duplicating it. To pick up Snowball updates after `git pull`-ing the Snowball clone, re-run the installer.
+- **`skills/`** — a real directory containing one copy per Snowball skill (`skills/brainstorming/` is a `cp -R` of `<snowball>/skills/brainstorming/`, etc.). Snowball does **not** symlink the entire `skills/` directory or any individual skill; it copies each one so the project can keep its own `skills/<custom-skill>/` alongside Snowball's. Project-defined entries with the same name as a Snowball skill are left untouched. The set of skills the installer wrote is tracked in `.gitlab/duo/snowball-skills.json` so re-runs can refresh in place and `--uninstall` knows which directories to remove.
+- **`.gitlab/duo/hooks/`** — Snowball's `run-hook.cmd` and `session-start` are copied into this directory so the project is fully self-contained (no path back into the Snowball clone). The copied `session-start` reads its `using-snowball` framing from the project's own `skills/using-snowball/SKILL.md`.
+- **`.gitlab/duo/hooks.json`** — if the file doesn't exist, it's generated with Snowball's `SessionStart` entry. If it exists with user-defined hooks, the installer parses it as JSON and **appends** Snowball's `SessionStart` matcher entry alongside any others — including hooks under other event types like `PreToolUse`, which are left untouched. The Snowball entry's command resolves to the project-local script via Duo's `${DUO_PROJECT_DIR}` expansion: `SNOWBALL_PLUGIN_ROOT="${DUO_PROJECT_DIR}" "${DUO_PROJECT_DIR}/.gitlab/duo/hooks/run-hook.cmd" session-start`.
+
+Installs created by earlier versions of this script (whole-directory or per-skill `skills/` symlinks, AGENTS.md symlinks, hooks.json with an absolute Snowball clone path) are auto-migrated on re-run.
 
 ### Project-defined skills coexist with Snowball's
 
-The per-skill linking model lets a project define its own skills next to Snowball's:
+The per-skill copy model lets a project define its own skills next to Snowball's:
 
 ```
 <project>/skills/
-├── brainstorming           → symlink to <snowball>/skills/brainstorming
-├── test-driven-development → symlink to <snowball>/skills/test-driven-development
-├── ...                     → (the rest of Snowball's skills, all symlinked)
+├── brainstorming/          → copy of <snowball>/skills/brainstorming/
+├── test-driven-development/ → copy of <snowball>/skills/test-driven-development/
+├── ...                     → (the rest of Snowball's skills, all copied)
 └── my-deploy-workflow/     → real directory: a project-defined skill
     └── SKILL.md
 ```
 
 If a project already has its own `skills/<name>/` with the **same name** as a Snowball skill, the installer leaves the project's version alone — that's an intentional local override. The using-snowball framing tells agents to prefer project-defined skills over Snowball-shipped ones when both could apply (see [`AGENTS.md`](../AGENTS.md) and [`skills/using-snowball/SKILL.md`](../skills/using-snowball/SKILL.md), "Instruction Priority").
 
-A summary line at the end of install lists how many skills were linked, how many were already in place, and how many project-defined skills were preserved.
+The manifest `.gitlab/duo/snowball-skills.json` records which directories the installer wrote so re-runs refresh those entries and `--uninstall` removes only them.
 
-### Migrating from the previous whole-directory symlink
+A summary line at the end of install lists how many skills were copied, how many were refreshed from a previous install, how many were migrated from a legacy symlink, and how many project-defined skills were preserved.
 
-Early versions of this installer symlinked the entire `skills/` directory in one step. Re-running the current installer over a target that has the old symlink auto-migrates it to the per-skill model — no manual cleanup required. `--uninstall` also handles both formats.
+### Migrating from the previous symlink-based installs
+
+Early versions of this installer symlinked the entire `skills/` directory, or each individual skill, and symlinked `AGENTS.md`. Duo doesn't follow those symlinks reliably across all surfaces, so the current installer copies everything instead. Re-running the installer over a target left behind by an older version auto-migrates whatever it finds (whole-directory symlink, per-skill symlinks, AGENTS.md symlink, hooks.json with an absolute Snowball path) — no manual cleanup required. `--uninstall` handles all formats.
 
 ### Flags and uninstall
 
@@ -88,9 +93,9 @@ install-into-project.sh --uninstall           # remove only the artifacts this s
 install-into-project.sh /path/to/other/proj   # explicit target path instead of $PWD
 ```
 
-`--force` switches to a destructive overwrite: a user-owned `AGENTS.md` becomes a Snowball symlink, a non-Snowball `AGENTS.md` symlink is replaced, and an existing `hooks.json` is replaced with a Snowball-only one. The merge behavior is the default; pass `--force` only when you genuinely want to discard what was there.
+`--force` switches to a destructive overwrite: a user-owned `AGENTS.md` is replaced by a Snowball-only copy, a non-Snowball `AGENTS.md` symlink is removed, and any project-defined `skills/<name>/` that collides with a Snowball skill name is overwritten with Snowball's copy. The merge / preserve behavior is the default; pass `--force` only when you genuinely want to discard what was there.
 
-`--uninstall` is also non-destructive: it removes the per-skill symlinks that resolve into this Snowball clone, the `AGENTS.md` symlink (if it pointed at Snowball) or the marked block (leaving the rest of the file intact), and only the Snowball entry from `hooks.json` (leaving user-defined entries — and other event types — alone). The `skills/` directory itself is preserved if any project-defined skills remain inside it; an `AGENTS.md` is preserved if it had user content outside the marked block.
+`--uninstall` is also non-destructive: it removes the per-skill copies listed in `.gitlab/duo/snowball-skills.json` (plus any legacy per-skill symlinks that still resolve into this Snowball clone), removes the AGENTS.md marker block (leaving the rest of the file intact), removes the copied hook scripts under `.gitlab/duo/hooks/`, and removes only the Snowball entry from `hooks.json` (leaving user-defined entries — and other event types — alone). The `skills/` directory itself is preserved if any project-defined skills remain inside it; an `AGENTS.md` is preserved if it had user content outside the marked block.
 
 ### python3 requirement
 
@@ -102,19 +107,18 @@ Use this when you want Snowball framing applied across **every** project without
 
 ### Linux / macOS
 
+Duo doesn't follow symlinks for `AGENTS.md` or hook scripts, so copy the files into your user config dir — don't symlink them. Re-run the copy after a `git pull` in the Snowball clone to pick up updates.
+
 ```bash
 mkdir -p ~/.gitlab/duo
 
 # 1. AGENTS.md — system-level framing for all Duo surfaces
-ln -s ~/Projects/snowball/AGENTS.md ~/.gitlab/duo/AGENTS.md
+cp ~/Projects/snowball/AGENTS.md ~/.gitlab/duo/AGENTS.md
 
 # 2. hooks.json — Duo CLI SessionStart bootstrap (CLI only)
-ln -s ~/Projects/snowball/.gitlab/duo/hooks.json ~/.gitlab/duo/hooks.json
-```
-
-The hook command in `hooks.json` uses `$DUO_PROJECT_DIR`, which Duo sets to the user's project — not to Snowball. For user-level install you need to override that path so the hook still finds Snowball's bootstrap script. Copy the file instead of symlinking it and edit the path:
-
-```bash
+# The hook command uses $DUO_PROJECT_DIR, which Duo sets to the user's
+# project — not to Snowball. Patch it to point at the Snowball clone so
+# the bootstrap script can find the using-snowball framing.
 cp ~/Projects/snowball/.gitlab/duo/hooks.json ~/.gitlab/duo/hooks.json
 sed -i 's|${DUO_PROJECT_DIR}|'"$HOME"'/Projects/snowball|' ~/.gitlab/duo/hooks.json
 ```
@@ -183,7 +187,10 @@ cd ~/Projects/snowball
 git pull
 ```
 
-If you installed at user level by copying `hooks.json` (not symlinking), re-run the copy + path-patch step after pulling.
+Because all installed artifacts (AGENTS.md, skills, hook scripts) are now copies rather than symlinks, re-run the relevant install step after pulling to propagate updates:
+
+- **Path B (per-project):** re-run `scripts/install-into-project.sh` in the target project. The AGENTS.md marker block is updated in place, each Snowball skill listed in `.gitlab/duo/snowball-skills.json` is refreshed, and the hook scripts under `.gitlab/duo/hooks/` are replaced. Project-defined skills and user content outside the marker block are left alone.
+- **Path C (user-level):** re-run the copy + path-patch step.
 
 ## Troubleshooting
 
