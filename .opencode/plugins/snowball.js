@@ -55,11 +55,11 @@ const normalizePath = (p, homeDir) => {
 // every agent step.  See #1202 for the full analysis.
 let _bootstrapCache = undefined; // undefined = not yet loaded, null = file missing
 
-export const SnowballPlugin = async ({ client, directory }) => {
+export const SnowballPlugin = async ({ client: _client, directory: _directory }) => {
   const homeDir = os.homedir();
   const snowballSkillsDir = path.resolve(__dirname, "../../skills");
   const envConfigDir = normalizePath(process.env.OPENCODE_CONFIG_DIR, homeDir);
-  const configDir = envConfigDir || path.join(homeDir, ".config/opencode");
+  const _configDir = envConfigDir || path.join(homeDir, ".config/opencode");
 
   // Helper to generate bootstrap content (cached after first call)
   const getBootstrapContent = () => {

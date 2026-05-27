@@ -202,7 +202,8 @@ function handleUpgrade(req, socket) {
       let result;
       try {
         result = decodeFrame(buffer);
-      } catch (e) {
+        // oxlint-disable-next-line no-unused-vars -- decode errors close the socket; error detail is not actionable
+      } catch (_e) {
         socket.end(encodeFrame(OPCODES.CLOSE, Buffer.alloc(0)));
         clients.delete(socket);
         return;
@@ -259,7 +260,8 @@ function broadcast(msg) {
   for (const socket of clients) {
     try {
       socket.write(frame);
-    } catch (e) {
+      // oxlint-disable-next-line no-unused-vars -- write errors indicate dead socket; remove it, error detail is irrelevant
+    } catch (_e) {
       clients.delete(socket);
     }
   }
