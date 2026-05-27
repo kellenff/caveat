@@ -19,8 +19,10 @@ export type SourceSkill =
   | "code-review"
   | "ambient";
 
+export type SchemaVersion = "1.0" | "1.1";
+
 export interface SnowballMeta {
-  schema_version: "1.0";
+  schema_version: SchemaVersion;
   source: Source;
   confidence: Confidence;
   capture_mechanism: CaptureMechanism;
@@ -28,6 +30,8 @@ export interface SnowballMeta {
   source_event_id: string;
   supersedes: string | null;
   tags: [SourceSkill, ...string[]];
+  argdown_path?: string | null;
+  argdown_root_label?: string | null;
 }
 
 export interface ConsideredOption {

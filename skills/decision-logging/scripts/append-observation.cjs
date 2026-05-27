@@ -68,6 +68,7 @@ __export(exports_append_observation, {
   TYPES: () => TYPES,
   SOURCE_SKILLS: () => SOURCE_SKILLS,
   SOURCES: () => SOURCES,
+  SCHEMA_VERSIONS: () => SCHEMA_VERSIONS,
   CONFIDENCES: () => CONFIDENCES
 });
 module.exports = __toCommonJS(exports_append_observation);
@@ -99,6 +100,7 @@ var SOURCE_SKILLS = [
   "code-review",
   "ambient"
 ];
+var SCHEMA_VERSIONS = ["1.0", "1.1"];
 function validate(obs) {
   const errors = [];
   const o = obs;
@@ -112,8 +114,9 @@ function validate(obs) {
   requireString("session_id");
   requireString("content");
   requireString("rationale");
-  if (o.schema_version !== "1.0")
-    errors.push('schema_version must be "1.0"');
+  if (!SCHEMA_VERSIONS.includes(o.schema_version)) {
+    errors.push(`schema_version must be one of ${SCHEMA_VERSIONS.join(", ")}`);
+  }
   if (!TYPES.includes(o.type)) {
     errors.push(`type must be one of ${TYPES.join(", ")}`);
   }
@@ -133,6 +136,22 @@ function validate(obs) {
   }
   if (o.related_decision !== null && typeof o.related_decision !== "string") {
     errors.push("related_decision must be string or null");
+  }
+  if (o.argdown_ref !== undefined) {
+    if (o.schema_version === "1.0") {
+      errors.push("argdown_ref requires schema_version 1.1");
+    }
+    const ref = o.argdown_ref;
+    if (!ref || typeof ref !== "object") {
+      errors.push("argdown_ref must be an object");
+    } else {
+      if (typeof ref.path !== "string" || !ref.path) {
+        errors.push("argdown_ref.path required (non-empty string)");
+      }
+      if (typeof ref.node_label !== "string" || !ref.node_label) {
+        errors.push("argdown_ref.node_label required (non-empty string)");
+      }
+    }
   }
   return { valid: errors.length === 0, errors };
 }

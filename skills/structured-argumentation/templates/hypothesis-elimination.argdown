@@ -1,0 +1,53 @@
+# <Bug or failure>
+
+// Use after systematic-debugging Phase 3 has cycled through 2+ hypotheses
+// without resolution. Phase 1 (evidence) is non-negotiable — fill in the
+// "Observed" lines from real investigation, not from speculation.
+
+[Symptom]: <One-line description of what the user / test observed>.
+
+<H1: First hypothesis>
+  (1) <Premise the hypothesis rests on>.
+  (2) <Premise the hypothesis rests on>.
+  -----
+  (3) <Predicted symptom — should match [Symptom] if true>.
+
+// Evidence collected for H1:
+// Predicted: <What you expected to observe if H1 were true>.
+// Observed:  <What you actually saw — file + line + instrumentation output>.
+// Verdict:   <confirmed | refuted | inconclusive>.
+
+<H2: Second hypothesis>
+  (1) <Premise>.
+  -----
+  (2) <Predicted symptom>.
+
+// Predicted: ...
+// Observed:  ...
+// Verdict:   ...
+
+<H3: Third hypothesis>
+  (1) <Premise>.
+  -----
+  (2) <Predicted symptom>.
+
+// Predicted: ...
+// Observed:  ...
+// Verdict:   ...
+
+## Elimination edges
+
+// Attack and support edges based on observed evidence.
+<H1: First hypothesis>
+  -> <H1: First hypothesis>    // self-attack: H1 was refuted by its own evidence
+
+<H2: Second hypothesis>
+  +> [Symptom]                 // H2 survives; explains the symptom
+
+<H3: Third hypothesis>
+  -> <H3: Third hypothesis>    // refuted
+
+## Next test
+
+[Next test]: <The single concrete experiment that distinguishes the surviving hypothesis from any remaining alternatives>.
+  <+ <H2: Second hypothesis>

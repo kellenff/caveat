@@ -82,6 +82,7 @@ digraph brainstorming {
 - Propose 2-3 different approaches with trade-offs
 - Present options conversationally with your recommendation and reasoning
 - Lead with your recommended option and explain why
+- **OPTIONAL SUB-SKILL:** Once the alternatives are stable and their pros/cons cross-cut (the same consideration applies to multiple options, no single option clearly wins), use `snowball:structured-argumentation` to externalize the option/trade-off graph as a sibling `.argdown` file next to the spec. The graph surfaces the structure of the reasoning you've already done in prose — it does not replace prose deliberation. Skip for simple either/or choices.
 
 **Presenting the design:**
 

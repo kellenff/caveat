@@ -14,7 +14,7 @@ Snowball is an agentic-skills plugin for multiple AI coding harnesses — Claude
 
 - A markdown-based skills library that loads as agent behavior via session-start context injection.
 - A multi-harness plugin — one `skills/` directory, six per-harness manifests, one shared bootstrap script that adapts its output to each harness's expected JSON shape.
-- Zero runtime npm dependencies for skill loading. Skills are plain markdown; the bootstrap is one bash file. Two skills ship local Node scripts: `brainstorming` (visual-companion HTTP server, stdlib only) and `decision-logging` (hook bridges, with third-party code pre-bundled into the shipped `.cjs` files). Node is required for those skills; `npm install` is not.
+- Zero runtime npm dependencies for skill loading. Skills are plain markdown; the bootstrap is one bash file. Three skills ship local Node scripts: `brainstorming` (visual-companion HTTP server, stdlib only), `decision-logging` (hook bridges, with third-party code pre-bundled into the shipped `.cjs` files), and `structured-argumentation` (an argdown-parser validator bundled the same way). Node is required for those skills; `npm install` is not.
 
 ### What this isn't
 
@@ -53,13 +53,13 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-Consumers (people who load snowball into their AI coding harness) do NOT need any of these. The shipped artifacts under `skills/decision-logging/scripts/*.cjs` are bundled — js-yaml and any other dependencies are inlined.
+Consumers (people who load snowball into their AI coding harness) do NOT need any of these. The shipped artifacts under `skills/decision-logging/scripts/*.cjs` and `skills/structured-argumentation/scripts/*.cjs` are bundled — js-yaml, `@argdown/core`, and any other dependencies are inlined.
 
 ## Repository map
 
 | Path | What lives here |
 |---|---|
-| `skills/` | The 14 skills (see [Skills index](#skills-index)). Each is a directory with a `SKILL.md` plus optional `references/` and `scripts/`. |
+| `skills/` | The 15 skills (see [Skills index](#skills-index)). Each is a directory with a `SKILL.md` plus optional `references/` and `scripts/`. |
 | `hooks/` | `session-start` (the bash bootstrap script), `run-hook.cmd` (polyglot bash/batch wrapper for Windows), `hooks.json` (Claude Code hook registration), `hooks-cursor.json` (Cursor hook registration). |
 | `.claude-plugin/` | Claude Code plugin manifest + dev marketplace manifest. |
 | `.codex-plugin/` | Codex plugin manifest, kept in sync (via `scripts/sync-to-codex-plugin.sh`) with a separate Codex distribution repo. |
@@ -104,7 +104,7 @@ OpenCode can't shell out reliably, so [`.opencode/plugins/snowball.js`](.opencod
 
 ## Skills index
 
-14 skills in four groups. Each links to its `SKILL.md`.
+15 skills in four groups. Each links to its `SKILL.md`.
 
 ### Bootstrap
 
@@ -131,6 +131,7 @@ OpenCode can't shell out reliably, so [`.opencode/plugins/snowball.js`](.opencod
 
 - [`using-git-worktrees`](skills/using-git-worktrees/SKILL.md) — sets up isolated workspaces for feature work.
 - [`writing-skills`](skills/writing-skills/SKILL.md) — meta-skill for creating and adversarially testing new skills.
+- [`structured-argumentation`](skills/structured-argumentation/SKILL.md) — argdown as an intermediate representation for surfacing the structure of arguments (option-comparison, hypothesis-elimination, claim-decomposition) once prose reasoning is well underway. Ships a parser-only validator bundled from `@argdown/core`.
 
 ## Local setup
 

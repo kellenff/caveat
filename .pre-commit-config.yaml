@@ -35,14 +35,14 @@ repos:
         entry: oxlint
         language: system
         types_or: [ts, javascript]
-        exclude: ^skills/decision-logging/scripts/
+        exclude: ^skills/(decision-logging|structured-argumentation)/scripts/
 
       - id: oxfmt
         name: oxfmt
         entry: oxfmt
         language: system
         types_or: [ts, javascript, json, yaml]
-        exclude: ^skills/decision-logging/scripts/
+        exclude: ^skills/(decision-logging|structured-argumentation)/scripts/
 
       - id: build-decision-logging
         name: build decision-logging bundles
@@ -56,4 +56,18 @@ repos:
         entry: bash -c 'cd tests/decision-logging && bun test'
         language: system
         files: ^skills/decision-logging/(src|scripts)/|^tests/decision-logging/
+        pass_filenames: false
+
+      - id: build-structured-argumentation
+        name: build structured-argumentation bundle
+        entry: scripts/build-structured-argumentation.sh
+        language: system
+        files: ^skills/structured-argumentation/src/.*\.ts$
+        pass_filenames: false
+
+      - id: bun-test-structured-argumentation
+        name: bun test structured-argumentation
+        entry: bash -c 'cd tests/structured-argumentation && bun test'
+        language: system
+        files: ^skills/structured-argumentation/(src|scripts|templates)/|^tests/structured-argumentation/
         pass_filenames: false
