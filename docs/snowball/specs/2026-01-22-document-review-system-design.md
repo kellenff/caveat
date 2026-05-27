@@ -26,7 +26,7 @@ Both follow the iterative loop pattern used by implementation reviews.
 | YAGNI | Unrequested features, over-engineering |
 
 **Output format:**
-```
+```text
 ## Spec Review
 
 **Status:** Approved | Issues Found
@@ -80,7 +80,7 @@ The reviewer reads both and compares requirements coverage.
 
 ## Updated Workflow
 
-```
+```text
 brainstorming -> spec -> SPEC REVIEW LOOP -> writing-plans -> plan -> PLAN REVIEW LOOP -> implementation
 ```
 

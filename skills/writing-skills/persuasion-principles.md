@@ -9,6 +9,7 @@ LLMs respond to the same persuasion principles as humans. Understanding this psy
 ## The Seven Principles
 
 ### 1. Authority
+
 **What it is:** Deference to expertise, credentials, or official sources.
 
 **How it works in skills:**
@@ -28,6 +29,7 @@ LLMs respond to the same persuasion principles as humans. Understanding this psy
 ```
 
 ### 2. Commitment
+
 **What it is:** Consistency with prior actions, statements, or public declarations.
 
 **How it works in skills:**
@@ -47,6 +49,7 @@ LLMs respond to the same persuasion principles as humans. Understanding this psy
 ```
 
 ### 3. Scarcity
+
 **What it is:** Urgency from time limits or limited availability.
 
 **How it works in skills:**
@@ -66,6 +69,7 @@ LLMs respond to the same persuasion principles as humans. Understanding this psy
 ```
 
 ### 4. Social Proof
+
 **What it is:** Conformity to what others do or what's considered normal.
 
 **How it works in skills:**
@@ -85,6 +89,7 @@ LLMs respond to the same persuasion principles as humans. Understanding this psy
 ```
 
 ### 5. Unity
+
 **What it is:** Shared identity, "we-ness", in-group belonging.
 
 **How it works in skills:**
@@ -103,6 +108,7 @@ LLMs respond to the same persuasion principles as humans. Understanding this psy
 ```
 
 ### 6. Reciprocity
+
 **What it is:** Obligation to return benefits received.
 
 **How it works:**
@@ -113,6 +119,7 @@ LLMs respond to the same persuasion principles as humans. Understanding this psy
 - Almost always (other principles more effective)
 
 ### 7. Liking
+
 **What it is:** Preference for cooperating with those we like.
 
 **How it works:**

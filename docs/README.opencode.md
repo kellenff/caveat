@@ -43,13 +43,13 @@ Then follow the installation steps above.
 
 Use OpenCode's native `skill` tool to list all available skills:
 
-```
+```text
 use skill tool to list skills
 ```
 
 ### Loading a Skill
 
-```
+```text
 use skill tool to load snowball/brainstorming
 ```
 
@@ -152,6 +152,6 @@ Then use the installed package path in `opencode.json`:
 
 ## Getting Help
 
-- Report issues: https://github.com/kellenff/snowball/issues
-- Main documentation: https://github.com/kellenff/snowball
-- OpenCode docs: https://opencode.ai/docs/
+- Report issues: <https://github.com/kellenff/snowball/issues>
+- Main documentation: <https://github.com/kellenff/snowball>
+- OpenCode docs: <https://opencode.ai/docs/>

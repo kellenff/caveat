@@ -38,6 +38,7 @@ of human involvement will be closed without review.
      If you believe the changes are related, explain the dependency. -->
 
 ## Existing PRs
+
 - [ ] I have reviewed all open AND closed PRs for duplicates or prior art
 - Related PRs: <!-- #number, #number, or "none found" -->
 
@@ -83,13 +84,14 @@ of human involvement will be closed without review.
 <details>
 <summary>Clean-session transcript for "Let's make a react todo list"</summary>
 
-```
+```text
 paste the complete transcript here
 ```
 
 </details>
 
 ## Evaluation
+
 - What was the initial prompt you (or your human partner) used to start
   the session that led to this change?
 - How many eval sessions did you run AFTER making the change?
@@ -111,6 +113,7 @@ paste the complete transcript here
      eval methodology and results. These are not prose — they are code. -->
 
 ## Human review
+
 - [ ] A human has reviewed the COMPLETE proposed diff before submission
 
 <!--

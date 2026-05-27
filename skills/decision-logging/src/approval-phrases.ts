@@ -1,18 +1,18 @@
-const APPROVAL_PHRASES = [
-  'lgtm',
-  'looks good',
-  'ship it',
-  'approved',
-  'approve',
-  'go ahead',
+export const APPROVAL_PHRASES = [
+  "lgtm",
+  "looks good",
+  "ship it",
+  "approved",
+  "approve",
+  "go ahead",
   "let's do that",
-  'yes do that',
-  'merge it',
-  'do it',
-];
+  "yes do that",
+  "merge it",
+  "do it",
+] as const;
 
-function matchesApproval(prompt) {
-  if (typeof prompt !== 'string') return false;
+export function matchesApproval(prompt: unknown): boolean {
+  if (typeof prompt !== "string") return false;
   const trimmed = prompt.trim().toLowerCase();
   if (!trimmed) return false;
 
@@ -25,5 +25,3 @@ function matchesApproval(prompt) {
   }
   return false;
 }
-
-module.exports = { APPROVAL_PHRASES, matchesApproval };

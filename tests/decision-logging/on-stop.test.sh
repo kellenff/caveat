@@ -8,11 +8,11 @@ FAIL=0
 
 # Test 1: on-stop returns within 2 seconds (detached fork)
 TMP_REPO=$(mktemp -d)
-( cd "$TMP_REPO" && git init -q && git config user.email t@t && git config user.name t )
+(cd "$TMP_REPO" && git init -q && git config user.email t@t && git config user.name t)
 
 START=$(date +%s)
-echo '{"session_id":"nonexistent-session"}' | \
-  ( cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER" )
+echo '{"session_id":"nonexistent-session"}' \
+  | (cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER")
 END=$(date +%s)
 ELAPSED=$((END - START))
 
@@ -25,8 +25,8 @@ fi
 
 # Test 2: on-stop no-ops outside git repo
 TMP_NONGIT=$(mktemp -d)
-echo '{"session_id":"x"}' | \
-  ( cd "$TMP_NONGIT" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER" )
+echo '{"session_id":"x"}' \
+  | (cd "$TMP_NONGIT" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER")
 status=$?
 if [ "$status" -eq 0 ]; then
   echo "[PASS] on-stop no-ops outside git repo"
@@ -36,7 +36,7 @@ else
 fi
 
 # Test 3: on-stop no-ops on missing session_id
-echo '{}' | ( cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER" )
+echo '{}' | (cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER")
 status=$?
 if [ "$status" -eq 0 ]; then
   echo "[PASS] on-stop no-ops with missing session_id"

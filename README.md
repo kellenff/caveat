@@ -14,7 +14,7 @@ Snowball is an agentic-skills plugin for multiple AI coding harnesses — Claude
 
 - A markdown-based skills library that loads as agent behavior via session-start context injection.
 - A multi-harness plugin — one `skills/` directory, six per-harness manifests, one shared bootstrap script that adapts its output to each harness's expected JSON shape.
-- Zero runtime dependencies for skill loading. Skills are plain markdown; the bootstrap is one bash file. Exceptions: the `brainstorming` skill ships a local Node HTTP server for its visual companion (`skills/brainstorming/scripts/server.cjs`) — Node is required for that skill, stdlib only. The `decision-logging` skill (Phase 1 fork divergence; see `docs/snowball/specs/2026-05-25-decision-logging-design.md`) requires Node plus a single npm dep (`js-yaml`); run `npm install` at the snowball root after cloning if you want decision-log capture to work.
+- Zero runtime npm dependencies for skill loading. Skills are plain markdown; the bootstrap is one bash file. Two skills ship local Node scripts: `brainstorming` (visual-companion HTTP server, stdlib only) and `decision-logging` (hook bridges, with third-party code pre-bundled into the shipped `.cjs` files). Node is required for those skills; `npm install` is not.
 
 ### What this isn't
 
@@ -31,6 +31,29 @@ These are real artifacts in the repo that haven't been reconciled with the fork'
 - **`CLAUDE.md` still contains upstream's contributor-policing prose.** The "94% PR rejection rate / anti-slop / fork-specific changes will be closed" sections were written for upstream's open-contribution model. They don't apply to this fork and will be rewritten in a separate cleanup. (`AGENTS.md` is freshly written for this fork and is no longer a symlink to `CLAUDE.md`.)
 - **`.github/ISSUE_TEMPLATE/`** carries upstream's open-issues assumption — out of place for a fork that takes no issues.
 - **`RELEASE-NOTES.md`** and the historical plans/specs under `docs/plans/`, `docs/snowball/plans/`, `docs/snowball/specs/` are upstream's historical record. Kept verbatim as history; not the current project's documentation.
+
+## Maintainer setup
+
+Snowball uses pre-commit hooks for formatting, linting, and the decision-logging build. After cloning, maintainers should:
+
+```bash
+# Required tools (one-time)
+brew install pre-commit shellcheck shfmt markdownlint-cli2 oxlint oxfmt bun
+
+# Install local devDeps (typescript, @types, js-yaml for the bun build)
+npm install
+
+# Install test deps for decision-logging
+(cd tests/decision-logging && npm install)
+
+# Activate hooks in this repo
+pre-commit install
+
+# Verify the toolchain
+pre-commit run --all-files
+```
+
+Consumers (people who load snowball into their AI coding harness) do NOT need any of these. The shipped artifacts under `skills/decision-logging/scripts/*.cjs` are bundled — js-yaml and any other dependencies are inlined.
 
 ## Repository map
 

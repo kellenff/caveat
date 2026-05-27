@@ -91,7 +91,7 @@ path_has_directory_exclude() {
   fi
 
   for dir in "${IGNORED_DIR_EXCLUDES[@]}"; do
-    [[ "$path" == "$dir"* ]] && return 0
+    [[ $path == "$dir"* ]] && return 0
   done
 
   return 1
@@ -108,7 +108,7 @@ append_git_ignored_directory_excludes() {
   local lookup_path
 
   while IFS= read -r -d '' path; do
-    [[ "$path" == */ ]] || continue
+    [[ $path == */ ]] || continue
 
     lookup_path="${path%/}"
     if ! ignored_directory_has_tracked_descendants "$lookup_path"; then
@@ -146,13 +146,31 @@ usage() {
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -n|--dry-run)  DRY_RUN=1; shift ;;
-    -y|--yes)      YES=1; shift ;;
-    --local)       LOCAL_CHECKOUT="$2"; shift 2 ;;
-    --base)        BASE="$2"; shift 2 ;;
-    --bootstrap)   BOOTSTRAP=1; shift ;;
-    -h|--help)     usage 0 ;;
-    *)             echo "Unknown arg: $1" >&2; usage 2 ;;
+    -n | --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    -y | --yes)
+      YES=1
+      shift
+      ;;
+    --local)
+      LOCAL_CHECKOUT="$2"
+      shift 2
+      ;;
+    --base)
+      BASE="$2"
+      shift 2
+      ;;
+    --bootstrap)
+      BOOTSTRAP=1
+      shift
+      ;;
+    -h | --help) usage 0 ;;
+    *)
+      echo "Unknown arg: $1" >&2
+      usage 2
+      ;;
   esac
 done
 
@@ -160,21 +178,24 @@ done
 # Preflight
 # =============================================================================
 
-die() { echo "ERROR: $*" >&2; exit 1; }
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
 
-command -v rsync >/dev/null   || die "rsync not found in PATH"
-command -v git >/dev/null     || die "git not found in PATH"
-command -v gh >/dev/null      || die "gh not found — install GitHub CLI"
+command -v rsync >/dev/null || die "rsync not found in PATH"
+command -v git >/dev/null || die "git not found in PATH"
+command -v gh >/dev/null || die "gh not found — install GitHub CLI"
 command -v python3 >/dev/null || die "python3 not found in PATH"
 
 gh auth status >/dev/null 2>&1 || die "gh not authenticated — run 'gh auth login'"
 
-[[ -d "$UPSTREAM/.git" ]]         || die "upstream '$UPSTREAM' is not a git checkout"
+[[ -d "$UPSTREAM/.git" ]] || die "upstream '$UPSTREAM' is not a git checkout"
 [[ -f "$UPSTREAM/.codex-plugin/plugin.json" ]] || die "committed Codex manifest missing at $UPSTREAM/.codex-plugin/plugin.json"
 
 # Read the upstream version from the committed Codex manifest.
 UPSTREAM_VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$UPSTREAM/.codex-plugin/plugin.json")"
-[[ -n "$UPSTREAM_VERSION" ]] || die "could not read 'version' from committed Codex manifest"
+[[ -n $UPSTREAM_VERSION ]] || die "could not read 'version' from committed Codex manifest"
 
 UPSTREAM_BRANCH="$(cd "$UPSTREAM" && git branch --show-current)"
 UPSTREAM_SHA="$(cd "$UPSTREAM" && git rev-parse HEAD)"
@@ -183,17 +204,19 @@ UPSTREAM_SHORT="$(cd "$UPSTREAM" && git rev-parse --short HEAD)"
 confirm() {
   [[ $YES -eq 1 ]] && return 0
   read -rp "$1 [y/N] " ans
-  [[ "$ans" == "y" || "$ans" == "Y" ]]
+  [[ $ans == "y" || $ans == "Y" ]]
 }
 
-if [[ "$UPSTREAM_BRANCH" != "main" ]]; then
+if [[ $UPSTREAM_BRANCH != "main" ]]; then
   echo "WARNING: upstream is on '$UPSTREAM_BRANCH', not 'main'"
   confirm "Sync from '$UPSTREAM_BRANCH' anyway?" || exit 1
 fi
 
 UPSTREAM_STATUS="$(cd "$UPSTREAM" && git status --porcelain)"
-if [[ -n "$UPSTREAM_STATUS" ]]; then
+if [[ -n $UPSTREAM_STATUS ]]; then
   echo "WARNING: upstream has uncommitted changes:"
+  # sed required to prefix each line of multi-line status output
+  # shellcheck disable=SC2001
   echo "$UPSTREAM_STATUS" | sed 's/^/  /'
   echo "Sync will use working-tree state, not HEAD ($UPSTREAM_SHORT)."
   confirm "Continue anyway?" || exit 1
@@ -205,13 +228,13 @@ fi
 
 CLEANUP_DIR=""
 cleanup() {
-  if [[ -n "$CLEANUP_DIR" ]]; then
+  if [[ -n $CLEANUP_DIR ]]; then
     rm -rf "$CLEANUP_DIR"
   fi
 }
 trap cleanup EXIT
 
-if [[ -n "$LOCAL_CHECKOUT" ]]; then
+if [[ -n $LOCAL_CHECKOUT ]]; then
   DEST_REPO="$(cd "$LOCAL_CHECKOUT" && pwd)"
   [[ -d "$DEST_REPO/.git" ]] || die "--local path '$DEST_REPO' is not a git checkout"
 else
@@ -236,7 +259,7 @@ overlay_destination_paths() {
     source_path="$repo/$path"
     preview_path="$PREVIEW_REPO/$path"
 
-    if [[ -e "$source_path" ]]; then
+    if [[ -e $source_path ]]; then
       mkdir -p "$(dirname "$preview_path")"
       cp -R "$source_path" "$preview_path"
     else
@@ -265,26 +288,26 @@ local_checkout_has_uncommitted_destination_changes() {
 }
 
 prepare_preview_checkout() {
-  if [[ -n "$LOCAL_CHECKOUT" ]]; then
-    [[ -n "$CLEANUP_DIR" ]] || CLEANUP_DIR="$(mktemp -d)"
+  if [[ -n $LOCAL_CHECKOUT ]]; then
+    [[ -n $CLEANUP_DIR ]] || CLEANUP_DIR="$(mktemp -d)"
     PREVIEW_REPO="$CLEANUP_DIR/preview"
     git clone -q --no-local "$DEST_REPO" "$PREVIEW_REPO"
     PREVIEW_DEST="$PREVIEW_REPO/$DEST_REL"
   fi
 
   git -C "$PREVIEW_REPO" checkout -q "$BASE" 2>/dev/null || die "base branch '$BASE' doesn't exist in $FORK"
-  if [[ -n "$LOCAL_CHECKOUT" ]]; then
+  if [[ -n $LOCAL_CHECKOUT ]]; then
     copy_local_destination_overlay
   fi
   if [[ $BOOTSTRAP -ne 1 ]]; then
-    [[ -d "$PREVIEW_DEST" ]] || die "base branch '$BASE' has no '$DEST_REL/' — use --bootstrap, or pass --base <branch>"
+    [[ -d $PREVIEW_DEST ]] || die "base branch '$BASE' has no '$DEST_REL/' — use --bootstrap, or pass --base <branch>"
   fi
 }
 
 prepare_apply_checkout() {
   git -C "$DEST_REPO" checkout -q "$BASE" 2>/dev/null || die "base branch '$BASE' doesn't exist in $FORK"
   if [[ $BOOTSTRAP -ne 1 ]]; then
-    [[ -d "$DEST" ]] || die "base branch '$BASE' has no '$DEST_REL/' — use --bootstrap, or pass --base <branch>"
+    [[ -d $DEST ]] || die "base branch '$BASE' has no '$DEST_REL/' — use --bootstrap, or pass --base <branch>"
   fi
 }
 
@@ -336,7 +359,7 @@ copy_preserved_destination_metadata() {
 prepare_sync_source() {
   local destination="$1"
 
-  [[ -n "$CLEANUP_DIR" ]] || CLEANUP_DIR="$(mktemp -d)"
+  [[ -n $CLEANUP_DIR ]] || CLEANUP_DIR="$(mktemp -d)"
 
   SYNC_SOURCE="$CLEANUP_DIR/source-overlay"
   rm -rf "$SYNC_SOURCE"
@@ -378,10 +401,13 @@ fi
 # =============================================================================
 
 echo ""
-confirm "Apply changes, push branch, and open PR?" || { echo "Aborted."; exit 1; }
+confirm "Apply changes, push branch, and open PR?" || {
+  echo "Aborted."
+  exit 1
+}
 
 echo ""
-if [[ -n "$LOCAL_CHECKOUT" ]]; then
+if [[ -n $LOCAL_CHECKOUT ]]; then
   if local_checkout_has_uncommitted_destination_changes; then
     die "local checkout has uncommitted changes under '$DEST_REL' — commit, stash, or discard them before syncing"
   fi

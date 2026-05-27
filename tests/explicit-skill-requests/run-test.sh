@@ -14,9 +14,9 @@ PROMPT_FILE="$2"
 MAX_TURNS="${3:-3}"
 
 if [ -z "$SKILL_NAME" ] || [ -z "$PROMPT_FILE" ]; then
-    echo "Usage: $0 <skill-name> <prompt-file> [max-turns]"
-    echo "Example: $0 subagent-driven-development ./prompts/subagent-driven-development-please.txt"
-    exit 1
+  echo "Usage: $0 <skill-name> <prompt-file> [max-turns]"
+  echo "Example: $0 subagent-driven-development ./prompts/subagent-driven-development-please.txt"
+  exit 1
 fi
 
 # Get the directory where this script lives
@@ -46,7 +46,7 @@ PROJECT_DIR="$OUTPUT_DIR/project"
 mkdir -p "$PROJECT_DIR/docs/snowball/plans"
 
 # Create a dummy plan file for mid-conversation tests
-cat > "$PROJECT_DIR/docs/snowball/plans/auth-system.md" << 'EOF'
+cat >"$PROJECT_DIR/docs/snowball/plans/auth-system.md" <<'EOF'
 # Auth System Implementation Plan
 
 ## Task 1: Add User Model
@@ -69,11 +69,11 @@ echo "Prompt: $PROMPT"
 echo ""
 
 timeout 300 claude -p "$PROMPT" \
-    --plugin-dir "$PLUGIN_DIR" \
-    --dangerously-skip-permissions \
-    --max-turns "$MAX_TURNS" \
-    --output-format stream-json \
-    > "$LOG_FILE" 2>&1 || true
+  --plugin-dir "$PLUGIN_DIR" \
+  --dangerously-skip-permissions \
+  --max-turns "$MAX_TURNS" \
+  --output-format stream-json \
+  >"$LOG_FILE" 2>&1 || true
 
 echo ""
 echo "=== Results ==="
@@ -82,11 +82,11 @@ echo "=== Results ==="
 # Match either "skill":"skillname" or "skill":"namespace:skillname"
 SKILL_PATTERN='"skill":"([^"]*:)?'"${SKILL_NAME}"'"'
 if grep -q '"name":"Skill"' "$LOG_FILE" && grep -qE "$SKILL_PATTERN" "$LOG_FILE"; then
-    echo "PASS: Skill '$SKILL_NAME' was triggered"
-    TRIGGERED=true
+  echo "PASS: Skill '$SKILL_NAME' was triggered"
+  TRIGGERED=true
 else
-    echo "FAIL: Skill '$SKILL_NAME' was NOT triggered"
-    TRIGGERED=false
+  echo "FAIL: Skill '$SKILL_NAME' was NOT triggered"
+  TRIGGERED=false
 fi
 
 # Show what skills WERE triggered
@@ -102,22 +102,22 @@ echo "Checking for premature action..."
 # This detects the failure mode where Claude starts doing work without loading the skill
 FIRST_SKILL_LINE=$(grep -n '"name":"Skill"' "$LOG_FILE" | head -1 | cut -d: -f1)
 if [ -n "$FIRST_SKILL_LINE" ]; then
-    # Check if any non-Skill, non-system tools were invoked before the first Skill invocation
-    # Filter out system messages, TodoWrite (planning is ok), and other non-action tools
-    PREMATURE_TOOLS=$(head -n "$FIRST_SKILL_LINE" "$LOG_FILE" | \
-        grep '"type":"tool_use"' | \
-        grep -v '"name":"Skill"' | \
-        grep -v '"name":"TodoWrite"' || true)
-    if [ -n "$PREMATURE_TOOLS" ]; then
-        echo "WARNING: Tools invoked BEFORE Skill tool:"
-        echo "$PREMATURE_TOOLS" | head -5
-        echo ""
-        echo "This indicates Claude started working before loading the requested skill."
-    else
-        echo "OK: No premature tool invocations detected"
-    fi
+  # Check if any non-Skill, non-system tools were invoked before the first Skill invocation
+  # Filter out system messages, TodoWrite (planning is ok), and other non-action tools
+  PREMATURE_TOOLS=$(head -n "$FIRST_SKILL_LINE" "$LOG_FILE" \
+    | grep '"type":"tool_use"' \
+    | grep -v '"name":"Skill"' \
+    | grep -v '"name":"TodoWrite"' || true)
+  if [ -n "$PREMATURE_TOOLS" ]; then
+    echo "WARNING: Tools invoked BEFORE Skill tool:"
+    echo "$PREMATURE_TOOLS" | head -5
+    echo ""
+    echo "This indicates Claude started working before loading the requested skill."
+  else
+    echo "OK: No premature tool invocations detected"
+  fi
 else
-    echo "WARNING: No Skill invocation found at all"
+  echo "WARNING: No Skill invocation found at all"
 fi
 
 # Show first assistant message
@@ -130,7 +130,7 @@ echo "Full log: $LOG_FILE"
 echo "Timestamp: $TIMESTAMP"
 
 if [ "$TRIGGERED" = "true" ]; then
-    exit 0
+  exit 0
 else
-    exit 1
+  exit 1
 fi

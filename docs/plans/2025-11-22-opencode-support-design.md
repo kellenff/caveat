@@ -197,7 +197,7 @@ export const SuperpowersPlugin = async ({ client, directory, $ }) => {
 
 ## File Structure
 
-```
+```text
 superpowers/
 ├── lib/
 │   └── skills-core.js           # NEW: Shared skill logic

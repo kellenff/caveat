@@ -48,7 +48,7 @@ Output: Rectangle printed to stdout.
 
 ## Architecture
 
-```
+```text
 cmd/
   fractals/
     main.go           # Entry point, CLI setup

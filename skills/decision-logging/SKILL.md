@@ -47,3 +47,17 @@ Snowball commits to the schema in `references/schema.md` with `schema_version: "
 - No manual `/log-decision` slash command yet.
 - No `superseded` linkage automation — operators hand-edit.
 - `capture_mechanism: stop-hook-subagent` is reserved in the schema for Phase 2 but not yet emitted; the Phase 1 worker only appends observations.
+
+## For maintainers
+
+The shipped artifacts in `scripts/*.cjs` are bundled outputs from `src/*.ts`. Don't edit `scripts/*.cjs` directly — edit the TS source and let the build regenerate.
+
+```bash
+# Build manually
+bash scripts/build-decision-logging.sh
+
+# Or rely on the pre-commit hook: editing src/*.ts auto-triggers the build
+# and stages the regenerated bundles before each commit.
+```
+
+Bundled output uses Bun (`bun build --target=node --format=cjs`). Bun is a maintainer dependency only; consumers continue to invoke `node` against the committed bundles.

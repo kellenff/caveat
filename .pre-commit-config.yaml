@@ -1,0 +1,59 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+      - id: check-json
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.10.0-2
+    hooks:
+      - id: shfmt
+        args: ["-i", "2", "-ci", "-bn", "-s", "-w"]
+        exclude: ^hooks/run-hook\.cmd$
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        exclude: ^hooks/run-hook\.cmd$
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.14.0
+    hooks:
+      - id: markdownlint-cli2
+
+  - repo: local
+    hooks:
+      - id: oxlint
+        name: oxlint
+        entry: oxlint
+        language: system
+        types_or: [ts, javascript]
+        exclude: ^skills/decision-logging/scripts/
+
+      - id: oxfmt
+        name: oxfmt
+        entry: oxfmt
+        language: system
+        types_or: [ts, javascript, json, yaml]
+        exclude: ^skills/decision-logging/scripts/
+
+      - id: build-decision-logging
+        name: build decision-logging bundles
+        entry: scripts/build-decision-logging.sh
+        language: system
+        files: ^skills/decision-logging/src/.*\.ts$
+        pass_filenames: false
+
+      - id: bun-test-decision-logging
+        name: bun test decision-logging
+        entry: bash -c 'cd tests/decision-logging && bun test'
+        language: system
+        files: ^skills/decision-logging/(src|scripts)/|^tests/decision-logging/
+        pass_filenames: false

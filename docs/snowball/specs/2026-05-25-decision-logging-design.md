@@ -61,7 +61,7 @@ The agent observation stream is enrichment, not session-critical. If the Stop ho
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────── Claude Code session ────────────────────────────┐
 │                                                                            │
 │   Agent ── AskUserQuestion ──> User                                        │
@@ -97,7 +97,7 @@ Three components: the skill (documentation + writer scripts + extraction prompt)
 
 ### `skills/decision-logging/`
 
-```
+```text
 skills/decision-logging/
 ├── SKILL.md                         # protocol/schema reference
 ├── scripts/
@@ -250,7 +250,7 @@ Chose **Two-tier**. Format matches ceremony level.
 
 ### `on-ask-user-question.sh` (PostToolUse, sync)
 
-```
+```text
 1. git_root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 2. Read hook stdin (PostToolUse payload): tool_input.questions, tool_response.answers, tool_use_id, session_id
 3. For each (question, answer) pair:
@@ -263,7 +263,7 @@ Chose **Two-tier**. Format matches ceremony level.
 
 ### `on-user-prompt.sh` (UserPromptSubmit, sync)
 
-```
+```text
 1. git_root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 2. Read prompt text from stdin (UserPromptSubmit payload: user_message)
 3. Match prompt (case-insensitive) against APPROVAL_PHRASES; exit 0 if no match
@@ -297,7 +297,7 @@ Match policy: the prompt is one of these phrases (exactly, case-insensitive) OR 
 
 ### `on-stop.sh` (Stop, detaches a background worker)
 
-```
+```text
 1. git_root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 2. Read session metadata from stdin (capture session_id, project_dir)
 3. Fork a detached extraction worker:
@@ -310,7 +310,7 @@ Match policy: the prompt is one of these phrases (exactly, case-insensitive) OR 
 
 The detached worker (`extract-worker.sh`) does the real work:
 
-```
+```text
 1. Locate transcript at ~/.claude/projects/<encoded>/<session_id>.jsonl
 2. Dispatch headless extraction:
      claude -p \

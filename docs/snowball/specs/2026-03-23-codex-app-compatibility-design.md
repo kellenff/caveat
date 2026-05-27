@@ -101,7 +101,7 @@ First, ensure all work is staged and committed (`git add` + `git commit`). The C
 
 Then present this to the user (do NOT present the 4-option menu):
 
-```
+```text
 Implementation complete. All tests passing.
 Current HEAD: <full-commit-sha>
 
@@ -142,11 +142,11 @@ Otherwise, check and remove as today. Note: the existing Step 5 text says "For O
 ### 3. `subagent-driven-development/SKILL.md` and `executing-plans/SKILL.md` — 1 line edit each
 
 Both skills have an identical Integration section line. Change from:
-```
+```text
 - superpowers:using-git-worktrees - REQUIRED: Set up isolated workspace before starting
 ```
 To:
-```
+```text
 - superpowers:using-git-worktrees - REQUIRED: Ensures isolated workspace (creates one or verifies existing)
 ```
 

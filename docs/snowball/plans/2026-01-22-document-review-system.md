@@ -68,7 +68,7 @@ Task tool (general-purpose):
 
     **Recommendations (advisory):**
     - [suggestions that don't block approval]
-```
+```text
 
 **Reviewer returns:** Status, Issues (if any), Recommendations
 ```
@@ -188,7 +188,7 @@ Task tool (general-purpose):
 
     **Recommendations (advisory):**
     - [suggestions that don't block approval]
-```
+```text
 
 **Reviewer returns:** Status, Issues (if any), Recommendations
 ```

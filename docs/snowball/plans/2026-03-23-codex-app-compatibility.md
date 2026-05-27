@@ -61,7 +61,7 @@ After reporting, STOP. Do not continue to Directory Selection or Creation Steps.
 **If `GIT_DIR` equals `GIT_COMMON`:** Proceed with the full worktree creation flow below.
 
 **Sandbox fallback:** If you proceed to Creation Steps but `git worktree add -b` fails with a permission error (e.g., "Operation not permitted"), treat this as a late-detected restricted environment. Fall back to the behavior above — run setup and baseline tests in the current directory, report accordingly, and STOP.
-```
+```text
 
 - [ ] **Step 3: Verify the insertion**
 
@@ -148,7 +148,7 @@ First, ensure all work is staged and committed (`git add` + `git commit`).
 
 Then present this to the user (do NOT present the 4-option menu):
 
-```
+```text
 Implementation complete. All tests passing.
 Current HEAD: <full-commit-sha>
 
@@ -177,7 +177,7 @@ Proceed to Step 2 and present the 4-option menu as normal.
 **Path C — `GIT_DIR` equals `GIT_COMMON` (normal environment):**
 
 Proceed to Step 2 and present the 4-option menu as normal.
-```
+```text
 
 - [ ] **Step 3: Verify the insertion**
 
@@ -224,7 +224,7 @@ git worktree remove <worktree-path>
 ```
 
 **For Option 3:** Keep worktree.
-```
+```text
 
 - [ ] **Step 2: Add the cleanup guard before existing logic**
 
@@ -255,7 +255,7 @@ git worktree remove <worktree-path>
 ```
 
 **For Option 3:** Keep worktree.
-```
+```text
 
 Note: the original text said "For Options 1, 2, 4" but the Quick Reference table and Common Mistakes section say "Options 1 & 4 only." This edit aligns Step 5 with those sections.
 
@@ -288,22 +288,22 @@ Options 1 and 4 only, matching Quick Reference and Common Mistakes."
 - [ ] **Step 1: Update `subagent-driven-development`**
 
 Change line 268 from:
-```
+```text
 - **superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
 ```
 To:
-```
+```text
 - **superpowers:using-git-worktrees** - REQUIRED: Ensures isolated workspace (creates one or verifies existing)
 ```
 
 - [ ] **Step 2: Update `executing-plans`**
 
 Change line 68 from:
-```
+```text
 - **superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
 ```
 To:
-```
+```text
 - **superpowers:using-git-worktrees** - REQUIRED: Ensures isolated workspace (creates one or verifies existing)
 ```
 
@@ -366,7 +366,7 @@ the user to use the App's native controls:
 
 The agent can still run tests, stage files, and output suggested branch
 names, commit messages, and PR descriptions for the user to copy.
-```
+```text
 
 - [ ] **Step 3: Verify the additions**
 

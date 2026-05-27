@@ -47,7 +47,7 @@ Use Task tool with `general-purpose` type, fill template at `code-reviewer.md`
 
 ## Example
 
-```
+```json
 [Just completed Task 2: Add verification function]
 
 You: Let me request code review before proceeding.

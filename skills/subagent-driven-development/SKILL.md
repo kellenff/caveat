@@ -127,7 +127,7 @@ Implementer subagents report one of four statuses. Handle each appropriately:
 
 ## Example Workflow
 
-```
+```text
 You: I'm using Subagent-Driven Development to execute this plan.
 
 [Read plan file once: docs/snowball/plans/feature-plan.md]

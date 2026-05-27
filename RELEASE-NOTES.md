@@ -536,7 +536,7 @@ The previous bootstrap injection method using `session.prompt({ noReply: true })
 
 **Claude Code: Fixed Windows hook execution for Claude Code 2.1.x**
 
-Claude Code 2.1.x changed how hooks execute on Windows: it now auto-detects `.sh` files in commands and prepends `bash `. This broke the polyglot wrapper pattern because `bash "run-hook.cmd" session-start.sh` tries to execute the .cmd file as a bash script.
+Claude Code 2.1.x changed how hooks execute on Windows: it now auto-detects `.sh` files in commands and prepends `bash`. This broke the polyglot wrapper pattern because `bash "run-hook.cmd" session-start.sh` tries to execute the .cmd file as a bash script.
 
 Fix: hooks.json now calls session-start.sh directly. Claude Code 2.1.x handles the bash invocation automatically. Also added .gitattributes to enforce LF line endings for shell scripts (fixes CRLF issues on Windows checkout).
 
@@ -774,6 +774,7 @@ Description changed to imperative: "You MUST use this before any creative workâ€
 - Updated terminology: "Superpowers skills" instead of "Core skills"
 
 ### Files Added
+
 - `.codex/INSTALL.md` - Installation guide for Codex users
 - `.codex/superpowers-bootstrap.md` - Bootstrap instructions with Codex adaptations
 - `.codex/superpowers-codex` - Unified Node.js executable with all functionality
@@ -793,6 +794,7 @@ Description changed to imperative: "You MUST use this before any creative workâ€
 The Skill tool is the proper mechanism for invoking skills in Claude Code. This update corrects the bootstrap instructions to guide agents toward the correct tool.
 
 ### Files Changed
+
 - Updated: `skills/using-superpowers/SKILL.md` - Changed tool references from Read to Skill
 
 ## v3.2.2 (2025-10-21)
@@ -815,6 +817,7 @@ The Skill tool is the proper mechanism for invoking skills in Claude Code. This 
 These changes address observed agent behavior where they rationalize around skill usage despite clear instructions. The forceful language and pre-emptive counter-arguments aim to make non-compliance harder.
 
 ### Files Changed
+
 - Updated: `skills/using-superpowers/SKILL.md` - Added three layers of enforcement to prevent skill-skipping rationalization
 
 ## v3.2.1 (2025-10-20)
@@ -829,6 +832,7 @@ These changes address observed agent behavior where they rationalize around skil
 - Fixes #55
 
 ### Files Changed
+
 - New: `agents/code-reviewer.md` - Agent definition with review checklist and output format
 - Updated: `skills/requesting-code-review/SKILL.md` - References to `superpowers:code-reviewer`
 - Updated: `skills/subagent-driven-development/SKILL.md` - References to `superpowers:code-reviewer`
@@ -1074,6 +1078,7 @@ If you have an existing installation:
 ## Documentation
 
 ### README
+
 - Updated for new skills repository architecture
 - Prominent link to superpowers-skills repo
 - Updated auto-update description
@@ -1081,6 +1086,7 @@ If you have an existing installation:
 - Updated Meta skills list
 
 ### Testing Documentation
+
 - Added comprehensive testing checklist (`docs/TESTING-CHECKLIST.md`)
 - Created local marketplace config for testing
 - Documented manual testing scenarios
@@ -1159,7 +1165,7 @@ The plugin handles everything automatically.
 
 ### For Contributors
 
-- Skills repository is now at https://github.com/obra/superpowers-skills
+- Skills repository is now at <https://github.com/obra/superpowers-skills>
 - Fork â†’ Branch â†’ PR workflow
 - See skills/meta/writing-skills/SKILL.md for TDD approach to documentation
 
@@ -1175,6 +1181,6 @@ None at this time.
 
 ---
 
-**Full Changelog:** https://github.com/obra/superpowers/compare/dd013f6...main
-**Skills Repository:** https://github.com/obra/superpowers-skills
-**Issues:** https://github.com/obra/superpowers/issues
+**Full Changelog:** <https://github.com/obra/superpowers/compare/dd013f6...main>
+**Skills Repository:** <https://github.com/obra/superpowers-skills>
+**Issues:** <https://github.com/obra/superpowers/issues>

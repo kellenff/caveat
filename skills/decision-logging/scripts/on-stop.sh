@@ -23,7 +23,7 @@ if [ -z "$SESSION_ID" ]; then
   exit 0
 fi
 
-nohup bash "$WORKER" "$SESSION_ID" "$GIT_ROOT" >> "$LOG_DIR/decision-logging.log" 2>&1 &
+nohup bash "$WORKER" "$SESSION_ID" "$GIT_ROOT" >>"$LOG_DIR/decision-logging.log" 2>&1 &
 disown
 
 exit 0

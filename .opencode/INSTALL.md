@@ -43,7 +43,7 @@ Then follow the installation steps above.
 
 Use OpenCode's native `skill` tool:
 
-```
+```text
 use skill tool to list skills
 use skill tool to load snowball/brainstorming
 ```
@@ -106,5 +106,5 @@ When skills reference Claude Code tools:
 
 ## Getting Help
 
-- Report issues: https://github.com/kellenff/snowball/issues
-- Full documentation: https://github.com/kellenff/snowball/blob/main/docs/README.opencode.md
+- Report issues: <https://github.com/kellenff/snowball/issues>
+- Full documentation: <https://github.com/kellenff/snowball/blob/main/docs/README.opencode.md>

@@ -1,0 +1,53 @@
+{
+  "default": true,
+  "MD013": false,
+  // MD024: Duplicate headings — major plan documents repeat section headings
+  // (Quick Reference, Common Mistakes, etc.) across independent H1 sections.
+  // siblings_only doesn't help because bash comments inside code blocks are
+  // mistaken for H1 headings, confusing the hierarchy detector.
+  "MD024": false,
+  "MD033": false,
+  "MD041": false,
+
+  // MD026: Trailing punctuation in headings — colons are intentional in
+  // definition-style headings throughout skills and plans docs.
+  "MD026": false,
+
+  // MD031: Blank lines around fenced code blocks — hand-crafted docs use
+  // tight prose-code interleaving that we want to preserve.
+  "MD031": false,
+
+  // MD032: Blank lines around lists — same rationale as MD031; plans/skills
+  // intentionally run lists tight against prose paragraphs.
+  "MD032": false,
+
+  // MD036: Emphasis used instead of a heading — bold "labels" (e.g. **Option A:**)
+  // are a deliberate doc style in skills and scenario files; not headings.
+  "MD036": false,
+
+  // MD028: Blank line inside blockquote — README uses two consecutive GitHub
+  // alert callouts ([!NOTE] / [!IMPORTANT]) separated by a blank line, which
+  // is valid GFM but triggers this rule.
+  "MD028": false,
+
+  // MD007: Unordered list indentation — lists inside XML-like callout blocks
+  // (<Note>, <Warning>) are intentionally indented to match the block indent.
+  "MD007": false,
+
+  // MD029: Ordered list item prefix — plans use cross-section sequential
+  // numbering (items 1-3 in Phase 1, 4-6 in Phase 2, etc.) and lists with
+  // code blocks that confuse the list-style detector.
+  "MD029": false,
+
+  // MD046: Code block style — some plan documents use indented code blocks
+  // inside complex fenced-block structures that markdownlint misidentifies.
+  "MD046": false,
+
+  // MD056: Table column count — pipe characters inside backtick code spans
+  // (e.g. `(src|scripts)/*`) are incorrectly counted as column separators.
+  "MD056": false,
+
+  // MD025: Single title / H1 — RELEASE-NOTES.md uses multiple H1 headings,
+  // one per major version section (changelog style).
+  "MD025": false
+}

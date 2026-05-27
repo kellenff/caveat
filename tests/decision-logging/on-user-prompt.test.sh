@@ -8,10 +8,10 @@ FAIL=0
 
 # Test 1: non-approval prompt → no MADR
 TMP_REPO=$(mktemp -d)
-( cd "$TMP_REPO" && git init -q && git config user.email t@t && git config user.name t )
+(cd "$TMP_REPO" && git init -q && git config user.email t@t && git config user.name t)
 
-echo '{"prompt":"what about edge case X","session_id":"s1"}' | \
-  ( cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER" )
+echo '{"prompt":"what about edge case X","session_id":"s1"}' \
+  | (cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER")
 
 if [ -d "$TMP_REPO/docs/snowball/decisions" ] && [ -n "$(ls "$TMP_REPO/docs/snowball/decisions" 2>/dev/null)" ]; then
   echo "[FAIL] non-approval prompt should not write MADR"
@@ -21,9 +21,11 @@ else
 fi
 
 # Test 2: approval prompt → writes MADR
-echo '{"prompt":"lgtm","session_id":"s1"}' | \
-  ( cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER" )
+echo '{"prompt":"lgtm","session_id":"s1"}' \
+  | (cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER")
 
+# ls is fine here; filenames are controlled (no spaces/specials in .md files from this test)
+# shellcheck disable=SC2012
 count=$(ls "$TMP_REPO/docs/snowball/decisions"/*.md 2>/dev/null | wc -l | tr -d ' ')
 if [ "$count" -ne 1 ]; then
   echo "[FAIL] approval prompt should write 1 MADR, got $count"
@@ -34,7 +36,9 @@ else
     echo "[PASS] approval prompt writes MADR with capture_mechanism=user-prompt-pattern"
   else
     echo "[FAIL] capture_mechanism wrong:"
-    cat "$MADR_FILE" | sed 's/^/    /'
+    # sed required to prefix each line; ${var//...} can't insert per-line prefixes
+    # shellcheck disable=SC2001
+    sed 's/^/    /' "$MADR_FILE"
     FAIL=1
   fi
 fi
@@ -42,7 +46,7 @@ fi
 # Test 3: approval right after ask-user-question MADR → dedupes
 NOW_ISO=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 EXISTING="$TMP_REPO/docs/snowball/decisions/$(date -u +%Y-%m-%dT%H%M)-existing-aq.md"
-cat > "$EXISTING" <<EOF
+cat >"$EXISTING" <<EOF
 ---
 title: existing
 status: accepted
@@ -62,9 +66,13 @@ snowball:
 # existing
 EOF
 
+# ls is fine here; filenames are controlled (no spaces/specials in .md files from this test)
+# shellcheck disable=SC2012
 before=$(ls "$TMP_REPO/docs/snowball/decisions"/*.md | wc -l | tr -d ' ')
-echo '{"prompt":"ship it","session_id":"s1"}' | \
-  ( cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER" )
+echo '{"prompt":"ship it","session_id":"s1"}' \
+  | (cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER")
+# ls is fine here; filenames are controlled (no spaces/specials in .md files from this test)
+# shellcheck disable=SC2012
 after=$(ls "$TMP_REPO/docs/snowball/decisions"/*.md | wc -l | tr -d ' ')
 
 if [ "$after" -eq "$before" ]; then

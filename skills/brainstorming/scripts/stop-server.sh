@@ -8,7 +8,7 @@
 
 SESSION_DIR="$1"
 
-if [[ -z "$SESSION_DIR" ]]; then
+if [[ -z $SESSION_DIR ]]; then
   echo '{"error": "Usage: stop-server.sh <session_dir>"}'
   exit 1
 fi
@@ -16,14 +16,14 @@ fi
 STATE_DIR="${SESSION_DIR}/state"
 PID_FILE="${STATE_DIR}/server.pid"
 
-if [[ -f "$PID_FILE" ]]; then
+if [[ -f $PID_FILE ]]; then
   pid=$(cat "$PID_FILE")
 
   # Try to stop gracefully, fallback to force if still alive
   kill "$pid" 2>/dev/null || true
 
   # Wait for graceful shutdown (up to ~2s)
-  for i in {1..20}; do
+  for _ in {1..20}; do
     if ! kill -0 "$pid" 2>/dev/null; then
       break
     fi
@@ -46,7 +46,7 @@ if [[ -f "$PID_FILE" ]]; then
   rm -f "$PID_FILE" "${STATE_DIR}/server.log"
 
   # Only delete ephemeral /tmp directories
-  if [[ "$SESSION_DIR" == /tmp/* ]]; then
+  if [[ $SESSION_DIR == /tmp/* ]]; then
     rm -rf "$SESSION_DIR"
   fi
 

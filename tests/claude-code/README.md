@@ -14,26 +14,31 @@ This test suite verifies that skills are loaded correctly and Claude follows the
 ## Running Tests
 
 ### Run all fast tests (recommended):
+
 ```bash
 ./run-skill-tests.sh
 ```
 
 ### Run integration tests (slow, 10-30 minutes):
+
 ```bash
 ./run-skill-tests.sh --integration
 ```
 
 ### Run specific test:
+
 ```bash
 ./run-skill-tests.sh --test test-subagent-driven-development.sh
 ```
 
 ### Run with verbose output:
+
 ```bash
 ./run-skill-tests.sh --verbose
 ```
 
 ### Set custom timeout:
+
 ```bash
 ./run-skill-tests.sh --timeout 1800  # 30 minutes for integration tests
 ```
@@ -41,6 +46,7 @@ This test suite verifies that skills are loaded correctly and Claude follows the
 ## Test Structure
 
 ### test-helpers.sh
+
 Common functions for skills testing:
 - `run_claude "prompt" [timeout]` - Run Claude with prompt
 - `assert_contains output pattern name` - Verify pattern exists
@@ -70,9 +76,11 @@ source "$SCRIPT_DIR/test-helpers.sh"
 echo "=== Test: My Skill ==="
 
 # Ask Claude about the skill
+
 output=$(run_claude "What does the my-skill skill do?" 30)
 
 # Verify response
+
 assert_contains "$output" "expected behavior" "Skill describes behavior"
 
 echo "=== All tests passed ==="
@@ -83,6 +91,7 @@ echo "=== All tests passed ==="
 ### Fast Tests (run by default)
 
 #### test-subagent-driven-development.sh
+
 Tests skill content and requirements (~2 minutes):
 - Skill loading and accessibility
 - Workflow ordering (spec compliance before code quality)
@@ -95,6 +104,7 @@ Tests skill content and requirements (~2 minutes):
 ### Integration Tests (use --integration flag)
 
 #### test-subagent-driven-development-integration.sh
+
 Full workflow execution test (~10-30 minutes):
 - Creates real test project with Node.js setup
 - Creates implementation plan with 2 tasks
@@ -116,6 +126,7 @@ Full workflow execution test (~10-30 minutes):
 - Final code is functional and tested
 
 #### test-requesting-code-review.sh
+
 Behavioral test for the code reviewer subagent (~5 minutes):
 - Builds a tiny project with a baseline commit
 - Adds a second commit that plants two real bugs (SQL injection, plaintext password handling)
@@ -155,10 +166,13 @@ Without verbose, only failures show output.
 
 To run in CI:
 ```bash
+
 # Run with explicit timeout for CI environments
+
 ./run-skill-tests.sh --timeout 900
 
 # Exit code 0 = success, non-zero = failure
+
 ```
 
 ## Notes

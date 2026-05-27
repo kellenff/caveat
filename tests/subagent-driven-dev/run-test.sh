@@ -28,16 +28,16 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Default plugin dir to parent of tests directory
-if [[ -z "$PLUGIN_DIR" ]]; then
+if [[ -z $PLUGIN_DIR ]]; then
   PLUGIN_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 fi
 
 # Verify test exists
 TEST_DIR="$SCRIPT_DIR/$TEST_NAME"
-if [[ ! -d "$TEST_DIR" ]]; then
+if [[ ! -d $TEST_DIR ]]; then
   echo "Error: Test '$TEST_NAME' not found at $TEST_DIR"
   echo "Available tests:"
-  ls -1 "$SCRIPT_DIR" | grep -v '\.sh$' | grep -v '\.md$'
+  find "$SCRIPT_DIR" -maxdepth 1 -mindepth 1 -not -name '*.sh' -not -name '*.md' -exec basename {} \;
   exit 1
 fi
 
@@ -78,7 +78,7 @@ claude -p "$PROMPT" \
   --dangerously-skip-permissions \
   --output-format stream-json \
   --verbose \
-  > "$LOG_FILE" 2>&1 || true
+  >"$LOG_FILE" 2>&1 || true
 
 # Extract final stats
 echo ""
@@ -88,7 +88,7 @@ echo "Claude log: $LOG_FILE"
 echo ""
 
 # Show token usage if available
-if command -v jq &> /dev/null; then
+if command -v jq &>/dev/null; then
   echo ">>> Token usage:"
   # Extract usage from the last message with usage info
   jq -s '[.[] | select(.type == "result")] | last | .usage' "$LOG_FILE" 2>/dev/null || echo "(could not parse usage)"
@@ -99,8 +99,8 @@ echo ">>> Next steps:"
 echo "1. Review the project: cd $OUTPUT_DIR/project"
 echo "2. Review Claude's log: less $LOG_FILE"
 echo "3. Check if tests pass:"
-if [[ "$TEST_NAME" == "go-fractals" ]]; then
+if [[ $TEST_NAME == "go-fractals" ]]; then
   echo "   cd $OUTPUT_DIR/project && go test ./..."
-elif [[ "$TEST_NAME" == "svelte-todo" ]]; then
+elif [[ $TEST_NAME == "svelte-todo" ]]; then
   echo "   cd $OUTPUT_DIR/project && npm test && npx playwright test"
 fi
