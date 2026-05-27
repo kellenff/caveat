@@ -20,9 +20,11 @@ if [ ! -f "$TRANSCRIPT" ]; then
   exit 0
 fi
 
+CLAUDE_BIN="${SNOWBALL_CLAUDE_BIN:-claude}"
+
 # Invoke headless claude with the extraction prompt; pipe transcript on stdin
 SYSTEM_PROMPT=$(cat "$PROMPT_FILE")
-EXTRACTION=$(claude -p \
+EXTRACTION=$("$CLAUDE_BIN" -p \
   --append-system-prompt "$SYSTEM_PROMPT" \
   --output-format text \
   <"$TRANSCRIPT" 2>>"$ERROR_LOG") || {
