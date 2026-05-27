@@ -20,11 +20,17 @@ ENTRIES=(
 )
 
 for entry in "${ENTRIES[@]}"; do
+  tmp="$(mktemp)"
   bun build "$SRC_DIR/$entry.ts" \
     --target=node \
     --format=cjs \
-    --outfile="$OUT_DIR/$entry.cjs" \
-    --minify=false
+    --outfile="$tmp"
+  dest="$OUT_DIR/$entry.cjs"
+  if ! diff -q "$tmp" "$dest" >/dev/null 2>&1; then
+    mv "$tmp" "$dest"
+  else
+    rm "$tmp"
+  fi
 done
 
 echo "built ${#ENTRIES[@]} bundles into $OUT_DIR/"

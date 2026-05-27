@@ -35,12 +35,14 @@ repos:
         entry: oxlint
         language: system
         types_or: [ts, javascript]
+        exclude: ^skills/decision-logging/scripts/
 
       - id: oxfmt
         name: oxfmt
         entry: oxfmt
         language: system
         types_or: [ts, javascript, json, yaml]
+        exclude: ^skills/decision-logging/scripts/
 
       - id: build-decision-logging
         name: build decision-logging bundles
