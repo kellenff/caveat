@@ -3,6 +3,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { spawnSync, type SpawnSyncReturns } from "node:child_process";
 import { execFileSync } from "node:child_process";
+import { randomBytes } from "node:crypto";
 
 export interface WorkerEnv {
   root: string;
@@ -33,7 +34,7 @@ export function setupWorkerEnv(opts: SetupOptions): WorkerEnv {
   const root = fs.realpathSync(rawRoot);
   const home = path.join(root, "home");
   const gitRoot = path.join(root, "repo");
-  const sessionId = "test-" + Math.random().toString(36).slice(2, 10);
+  const sessionId = "test-" + randomBytes(6).toString("hex");
 
   fs.mkdirSync(home, { recursive: true });
   fs.mkdirSync(gitRoot, { recursive: true });
