@@ -454,7 +454,7 @@ When the user clicks options in the browser, their interactions are recorded to 
 The full event stream shows the user's exploration path — they may click multiple options before settling. The last `choice` event is typically the final selection, but the pattern of clicks can reveal hesitation or preferences worth asking about.
 
 If `.events` doesn't exist, the user didn't interact with the browser — use only their terminal text.
-```
+```text
 
 - [ ] **Step 5: Update "Writing Content Fragments" description (line 65)**
 

@@ -12,7 +12,7 @@
 
 ---
 
-### Task 1: GATE — TDD Validation of Step 1a (Native Tool Preference)
+## Task 1: GATE — TDD Validation of Step 1a (Native Tool Preference)
 
 Step 1a is the load-bearing assumption of the entire design. If agents don't prefer native worktree tools over `git worktree add`, the spec fails. Validate this FIRST, before touching any skill files.
 
@@ -197,7 +197,7 @@ git worktree add on Claude Code. Must pass before skill rewrite."
 
 ---
 
-### Task 2: Rewrite `using-git-worktrees` SKILL.md
+## Task 2: Rewrite `using-git-worktrees` SKILL.md
 
 Full rewrite of the creation skill. Replaces the existing file entirely.
 
@@ -369,7 +369,7 @@ npm test / cargo test / pytest / go test ./...
 
 ### Report
 
-```
+```text
 Worktree ready at <full-path>
 Tests passing (<N> tests, 0 failures)
 Ready to implement <feature-name>
@@ -447,7 +447,7 @@ Ready to implement <feature-name>
 
 **Pairs with:**
 - **finishing-a-development-branch** - REQUIRED for cleanup after work complete
-```
+```text
 
 - [ ] **Step 2: Verify the file reads correctly**
 
@@ -471,7 +471,7 @@ Platform-neutral instruction file references (#1049)"
 
 ---
 
-### Task 3: Rewrite `finishing-a-development-branch` SKILL.md
+## Task 3: Rewrite `finishing-a-development-branch` SKILL.md
 
 Full rewrite of the finishing skill. Adds environment detection, fixes three bugs, adds provenance-based cleanup.
 
@@ -510,7 +510,7 @@ npm test / cargo test / pytest / go test ./...
 ```
 
 **If tests fail:**
-```
+```text
 Tests failing (<N> failures). Must fix before completing:
 
 [Show failures]
@@ -552,7 +552,7 @@ Or ask: "This branch split from main - is that correct?"
 
 **Normal repo and named-branch worktree — present exactly these 4 options:**
 
-```
+```text
 Implementation complete. What would you like to do?
 
 1. Merge back to <base-branch> locally
@@ -565,7 +565,7 @@ Which option?
 
 **Detached HEAD — present exactly these 3 options:**
 
-```
+```text
 Implementation complete. You're on a detached HEAD (externally managed workspace).
 
 1. Push as new branch and create a Pull Request
@@ -629,7 +629,7 @@ Report: "Keeping branch <name>. Worktree preserved at <path>."
 #### Option 4: Discard
 
 **Confirm first:**
-```
+```text
 This will permanently delete:
 - Branch <name>
 - All commits: <commit-list>
@@ -741,7 +741,7 @@ git worktree prune  # Self-healing: clean up any stale registrations
 
 **Pairs with:**
 - **using-git-worktrees** - Cleans up worktree created by that skill
-```
+```text
 
 - [ ] **Step 2: Verify the file reads correctly**
 
@@ -766,7 +766,7 @@ Stale worktree pruning after removal (git worktree prune)"
 
 ---
 
-### Task 4: Integration Updates
+## Task 4: Integration Updates
 
 One-line changes to three files that reference `using-git-worktrees`.
 
@@ -830,7 +830,7 @@ Fix stale 'created by brainstorming' claim in writing-plans."
 
 ---
 
-### Task 5: End-to-End Validation
+## Task 5: End-to-End Validation
 
 Verify the full rewritten skills work together. Run the existing test suite plus manual verification.
 

@@ -227,7 +227,7 @@ Push branch, create PR. Do NOT clean up worktree — user needs it for PR iterat
 
 #### Step 5: Cleanup (updated)
 
-```
+```text
 if GIT_DIR == GIT_COMMON:
     # Normal repo, no worktree to clean up
     done

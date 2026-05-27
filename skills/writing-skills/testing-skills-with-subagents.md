@@ -196,7 +196,7 @@ Write code before test? Delete it. Start over.
 - Don't "adapt" it while writing tests
 - Don't look at it
 - Delete means delete
-```
+```text
 </After>
 
 ### 2. Entry in Rationalization Table
@@ -210,6 +210,7 @@ Write code before test? Delete it. Start over.
 ### 3. Red Flag Entry
 
 ```markdown
+
 ## Red Flags - STOP
 
 - "Keep as reference" or "adapt existing code"
@@ -282,6 +283,7 @@ it crystal clear that Option A was the only acceptable answer?
 ## Example: TDD Skill Bulletproofing
 
 ### Initial Test (Failed)
+
 ```markdown
 Scenario: 200 lines done, forgot TDD, exhausted, dinner plans
 Agent chose: C (write tests after)
@@ -289,6 +291,7 @@ Rationalization: "Tests after achieve same goals"
 ```
 
 ### Iteration 1 - Add Counter
+
 ```markdown
 Added section: "Why Order Matters"
 Re-tested: Agent STILL chose C
@@ -296,6 +299,7 @@ New rationalization: "Spirit not letter"
 ```
 
 ### Iteration 2 - Add Foundational Principle
+
 ```markdown
 Added: "Violating letter is violating spirit"
 Re-tested: Agent chose A (delete it)

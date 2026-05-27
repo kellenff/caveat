@@ -56,7 +56,7 @@ The hook handlers invoke `node "$BRIDGE"` and the existing CJS pattern works. Sw
 
 **Added at repo top level:**
 
-```
+```text
 .pre-commit-config.yaml           # hooks definition (see Section 2)
 .markdownlint.jsonc               # markdownlint rules + per-file ignores
 .shellcheckrc                     # shellcheck severity + ignores
@@ -67,7 +67,7 @@ scripts/build-decision-logging.sh # wraps `bun build` for the bundle entry point
 
 **Modified at repo top level:**
 
-```
+```text
 README.md             # revert the zero-deps exception note (commit f240531); add "Maintainer setup" section
 package.json          # drop js-yaml runtime dep
 package-lock.json     # delete (no more npm install at root)
@@ -76,7 +76,7 @@ package-lock.json     # delete (no more npm install at root)
 
 **Decision-logging refactor:**
 
-```
+```text
 skills/decision-logging/
 ├── SKILL.md                              # add a "for maintainers" subsection on the build flow
 ├── references/schema.md                  # unchanged
@@ -103,7 +103,7 @@ skills/decision-logging/
 
 **Tests:**
 
-```
+```text
 tests/decision-logging/
 ├── package.json                          # drop js-yaml runtime dep; add `bun test` script; keep bash integration
 ├── *.test.ts                             # MIGRATED from .test.cjs (3 files)
@@ -228,7 +228,7 @@ repos:
 
 **`.shellcheckrc`:**
 
-```
+```ini
 # Default severity = warning; fix anything at warning level or above
 severity=warning
 # Ignore SC2155 (declare-and-assign) — common pattern in snowball
@@ -259,7 +259,7 @@ Each phase is independently committable. Pre-commit hooks run on each commit; th
 
 Add the six new top-level files. No content changes to existing files yet.
 
-```
+```text
 .pre-commit-config.yaml
 .markdownlint.jsonc
 .shellcheckrc

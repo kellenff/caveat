@@ -75,7 +75,7 @@ Subagents waste tokens and attention on irrelevant plan sections.
 **Impact:** Medium - Slower execution, more failed attempts
 
 **What worked:**
-```
+```text
 You are adding a single E2E test to packnplay's test suite.
 
 **Your task:** Add `TestE2E_FeaturePrivilegedMode` to `pkg/runner/e2e_test.go`
@@ -188,6 +188,7 @@ No enforcement that subagents read relevant skills. No prompt includes skill rea
 **Add new section:**
 
 ```markdown
+
 ## Verifying Configuration Changes
 
 When testing changes to configuration, providers, feature flags, or environment:
@@ -225,7 +226,7 @@ Red flags:
   - "Request succeeded" without checking content
   - Checking status code but not response body
   - Verifying no errors but not positive confirmation
-```
+```text
 
 **Why this works:**
 Forces verification of INTENT, not just operation success.
@@ -237,6 +238,7 @@ Forces verification of INTENT, not just operation success.
 **Add new section:**
 
 ```markdown
+
 ## Process Hygiene for E2E Tests
 
 When dispatching subagents that start services (servers, databases, message queues):
@@ -258,7 +260,7 @@ BEFORE starting any services:
 AFTER tests complete:
 1. Kill the process you started
 2. Verify cleanup: pgrep -f "<service-pattern>" || echo "Cleanup successful"
-```
+```text
 
 ### Example
 
@@ -273,7 +275,7 @@ Prompt includes:
 After tests:
 - Kill the server you started
 - Verify: pgrep -f 'node.*server.js' || echo 'Cleanup verified'"
-```
+```text
 
 ### Why This Matters
 
@@ -295,19 +297,20 @@ After tests:
 **Modify Step 2: Execute Task with Subagent**
 
 **Before:**
-```
+```text
 Read that task carefully from [plan-file].
 ```
 
 **After:**
-```
+```text
+
 ## Context Approaches
 
 **Full Plan (default):**
 Use when tasks are complex or have dependencies:
 ```
 Read Task N from [plan-file] carefully.
-```
+```text
 
 **Lean Context (for independent tasks):**
 Use when task is standalone and pattern-based:
@@ -320,7 +323,7 @@ What to implement: [specific requirement]
 Verification: [exact command to run]
 
 [Do NOT include full plan file]
-```
+```text
 
 **Use lean context when:**
 - Task follows existing pattern (add similar test, implement similar feature)
@@ -334,7 +337,7 @@ Verification: [exact command to run]
 ```
 
 **Example:**
-```
+```text
 Lean context prompt:
 
 "You are adding a test for privileged mode in devcontainer features.
@@ -358,7 +361,7 @@ Reduces token usage, increases focus, faster completion when appropriate.
 
 **Add to prompt template:**
 
-```
+```text
 When done, BEFORE reporting back:
 
 Take a step back and review your work with fresh eyes.
@@ -394,6 +397,7 @@ Adds ~30 seconds per task, but catches issues before review.
 **Add at the beginning:**
 
 ```markdown
+
 ## Files to Review
 
 BEFORE analyzing, read these files:
@@ -421,6 +425,7 @@ Explicit instruction prevents "file not found" issues.
 **Add new Anti-Pattern 6:**
 
 ```markdown
+
 ## Anti-Pattern 6: Mocks Derived from Implementation
 
 **The violation:**
@@ -464,7 +469,7 @@ const mock = {
 
 ### Gate Function
 
-```
+```text
 BEFORE writing any mock:
 
   1. STOP - Do NOT look at the code under test yet
@@ -492,7 +497,7 @@ When you see runtime error "X is not a function" and tests pass:
 1. Check if X is mocked
 2. Compare mock methods to interface methods
 3. Look for method name mismatches
-```
+```text
 
 **Why this works:**
 Directly addresses the failure pattern from feedback.
@@ -530,12 +535,12 @@ Adds time to each task, but prevents entire classes of bugs.
 **Modify Step 2:**
 
 **Current:**
-```
+```text
 Subagent reports back with summary of work.
 ```
 
 **Proposed:**
-```
+```text
 Subagent performs self-reflection, then:
 
 IF self-reflection identifies fixable issues:
@@ -581,29 +586,29 @@ Slightly more complex prompt, but faster end-to-end.
 
 ### Phase 2: Moderate Changes (Test Carefully)
 
-4. **subagent-driven-development: Process hygiene**
+1. **subagent-driven-development: Process hygiene**
    - Adds new section, doesn't change workflow
    - Addresses medium-high impact (test reliability)
    - File: `skills/subagent-driven-development/SKILL.md`
 
-5. **subagent-driven-development: Self-reflection**
+2. **subagent-driven-development: Self-reflection**
    - Changes prompt template (higher risk)
    - But documented to catch bugs
    - File: `skills/subagent-driven-development/SKILL.md`
 
-6. **subagent-driven-development: Skills reading requirement**
+3. **subagent-driven-development: Skills reading requirement**
    - Adds prompt overhead
    - But ensures skills are actually used
    - File: `skills/subagent-driven-development/SKILL.md`
 
 ### Phase 3: Optimization (Validate First)
 
-7. **subagent-driven-development: Lean context option**
+1. **subagent-driven-development: Lean context option**
    - Adds complexity (two approaches)
    - Needs validation that it doesn't cause confusion
    - File: `skills/subagent-driven-development/SKILL.md`
 
-8. **subagent-driven-development: Allow implementer to fix**
+2. **subagent-driven-development: Allow implementer to fix**
    - Changes workflow (higher risk)
    - Optimization, not bug fix
    - File: `skills/subagent-driven-development/SKILL.md`
@@ -663,6 +668,7 @@ How do we know these improvements work?
 ## Risks and Mitigations
 
 ### Risk: Prompt Bloat
+
 **Problem:** Adding all these requirements makes prompts overwhelming
 **Mitigation:**
 - Phase implementation (don't add everything at once)
@@ -670,6 +676,7 @@ How do we know these improvements work?
 - Consider templates for different task types
 
 ### Risk: Analysis Paralysis
+
 **Problem:** Too much reflection/verification slows execution
 **Mitigation:**
 - Keep gate functions quick (seconds, not minutes)
@@ -677,6 +684,7 @@ How do we know these improvements work?
 - Monitor task completion times
 
 ### Risk: False Sense of Security
+
 **Problem:** Following checklist doesn't guarantee correctness
 **Mitigation:**
 - Emphasize gate functions are minimums, not maximums
@@ -684,6 +692,7 @@ How do we know these improvements work?
 - Document that skills catch common failures, not all failures
 
 ### Risk: Skill Divergence
+
 **Problem:** Different skills give conflicting advice
 **Mitigation:**
 - Review changes across all skills for consistency

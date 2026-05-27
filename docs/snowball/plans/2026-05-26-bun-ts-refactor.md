@@ -16,7 +16,7 @@
 
 **Added at repo top level:**
 
-```
+```text
 .pre-commit-config.yaml                # hook orchestration
 .markdownlint.jsonc                    # markdown lint config
 .shellcheckrc                          # shellcheck config
@@ -27,7 +27,7 @@ scripts/build-decision-logging.sh      # wraps `bun build` for 4 entry points
 
 **Modified at repo top level (Phase 8):**
 
-```
+```text
 package.json                           # drop `dependencies` block; add `devDependencies`
                                        # (typescript, @types/node, @types/js-yaml for tsc)
 package-lock.json                      # regenerated to reflect devDeps only
@@ -39,7 +39,7 @@ No top-level deletions in Phase 8. `node_modules/` stays gitignored as before; `
 
 **Decision-logging refactor:**
 
-```
+```text
 skills/decision-logging/
 ├── SKILL.md                           # add "For maintainers" build-flow note
 ├── references/schema.md               # unchanged
@@ -66,7 +66,7 @@ skills/decision-logging/
 
 **Tests:**
 
-```
+```text
 tests/decision-logging/
 ├── package.json                       # MODIFIED: bun test script; js-yaml stays as devDep
 ├── *.test.ts                          # MIGRATED from .test.cjs (3 unit files)
@@ -214,7 +214,7 @@ repos:
 
 - [ ] **Step 3: Create `.shellcheckrc`**
 
-```
+```ini
 severity=warning
 disable=SC2155
 ```
@@ -483,7 +483,7 @@ Expected: findings in `skills/brainstorming/scripts/server.cjs` (large file), `.
 
 Add `.oxlintignore`:
 
-```
+```text
 # Decision-logging hand-written .cjs files are being replaced with TS+bundle.
 # Re-enable after Phase 9 (bundle generation).
 skills/decision-logging/scripts/*.cjs
@@ -1667,13 +1667,13 @@ After this, `node_modules/` is gitignored (stays local) and `package-lock.json` 
 
 Edit `README.md`. Find the line that currently reads:
 
-```
+```text
 - Zero runtime dependencies for skill loading. Skills are plain markdown; the bootstrap is one bash file. Exceptions: the `brainstorming` skill ships a local Node HTTP server for its visual companion (`skills/brainstorming/scripts/server.cjs`) — Node is required for that skill, stdlib only. The `decision-logging` skill (Phase 1 fork divergence; see `docs/snowball/specs/2026-05-25-decision-logging-design.md`) requires Node plus a single npm dep (`js-yaml`); run `npm install` at the snowball root after cloning if you want decision-log capture to work.
 ```
 
 Replace with:
 
-```
+```text
 - Zero runtime npm dependencies for skill loading. Skills are plain markdown; the bootstrap is one bash file. Two skills ship local Node scripts: `brainstorming` (visual-companion HTTP server, stdlib only) and `decision-logging` (hook bridges, with third-party code pre-bundled into the shipped `.cjs` files). Node is required for those skills; `npm install` is not.
 ```
 

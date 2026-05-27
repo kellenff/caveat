@@ -802,7 +802,7 @@ ln -s ~/.config/opencode/superpowers/.opencode/plugin/superpowers.js .opencode/p
 
 Restart OpenCode to load the plugin. On the next session, you should see:
 
-```
+```text
 You have superpowers.
 ```
 
@@ -812,7 +812,7 @@ You have superpowers.
 
 Use the `find_skills` tool to list all available skills:
 
-```
+```text
 use find_skills tool
 ```
 
@@ -820,7 +820,7 @@ use find_skills tool
 
 Use the `use_skill` tool to load a specific skill:
 
-```
+```text
 use use_skill tool with skill_name: "superpowers:brainstorming"
 ```
 
@@ -878,9 +878,9 @@ When a skill references a Claude Code tool you don't have:
 
 ## Getting Help
 
-- Report issues: https://github.com/obra/superpowers/issues
-- Documentation: https://github.com/obra/superpowers
-```
+- Report issues: <https://github.com/obra/superpowers/issues>
+- Documentation: <https://github.com/obra/superpowers>
+```text
 
 **Step 2: Verify file created**
 
@@ -1025,7 +1025,7 @@ Expected: All files exist
 
 Run: `tree -L 2 .opencode/` (or `find .opencode -type f` if tree not available)
 Expected:
-```
+```text
 .opencode/
 ├── INSTALL.md
 └── plugin/

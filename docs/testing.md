@@ -8,7 +8,7 @@ Testing skills that involve subagents, workflows, and complex interactions requi
 
 ## Test Structure
 
-```
+```text
 tests/
 ├── claude-code/
 │   ├── test-helpers.sh                    # Shared test utilities
@@ -65,7 +65,7 @@ The integration test verifies the `subagent-driven-development` skill correctly:
 
 ### Test Output
 
-```
+```text
 ========================================
  Integration Test: subagent-driven-development
 ========================================

@@ -47,6 +47,7 @@ This structure informs the task decomposition. Each task should produce self-con
 **Every plan MUST start with this header:**
 
 ```markdown
+
 # [Feature Name] Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use snowball:subagent-driven-development (recommended) or snowball:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -63,6 +64,7 @@ This structure informs the task decomposition. Each task should produce self-con
 ## Task Structure
 
 ````markdown
+
 ### Task N: [Component Name]
 
 **Files:**
@@ -114,6 +116,7 @@ Every step must contain the actual content an engineer needs. These are **plan f
 - References to types, functions, or methods not defined in any task
 
 ## Remember
+
 - Exact file paths always
 - Complete code in every step — if a step changes code, show the code
 - Exact commands with expected output

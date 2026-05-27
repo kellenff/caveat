@@ -16,7 +16,7 @@
 
 **Created:**
 
-```
+```text
 skills/decision-logging/
 ├── SKILL.md                              # protocol/schema reference (Task 1 stub, Task 12 polish)
 ├── references/

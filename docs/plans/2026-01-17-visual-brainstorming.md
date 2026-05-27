@@ -425,7 +425,7 @@ Run as a background job:
 node ${PLUGIN_ROOT}/lib/brainstorm-server/index.js
 ```
 
-Tell the user: "I've started a visual companion at http://localhost:3333 - open it in a browser."
+Tell the user: "I've started a visual companion at <http://localhost:3333> - open it in a browser."
 
 ## Pushing Screens
 
@@ -487,7 +487,7 @@ Event types:
 ```html
 <button onclick="brainstorm.choice('custom', {extra: 'data'})">Custom</button>
 ```
-```
+```text
 
 **Step 2: Add visual companion section to brainstorming skill**
 
@@ -542,7 +542,7 @@ Run: `cat .gitignore 2>/dev/null || echo "No .gitignore"`
 **Step 2: Add node_modules if needed**
 
 If not already present, add:
-```
+```text
 lib/brainstorm-server/node_modules/
 ```
 

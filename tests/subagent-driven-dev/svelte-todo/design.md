@@ -16,7 +16,7 @@ A simple todo list application built with Svelte. Supports creating, completing,
 
 ## User Interface
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │  Svelte Todos                           │
 ├─────────────────────────────────────────┤
@@ -33,7 +33,7 @@ A simple todo list application built with Svelte. Supports creating, completing,
 
 ## Components
 
-```
+```text
 src/
   App.svelte           # Main app, state management
   lib/
