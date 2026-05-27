@@ -1,0 +1,34 @@
+# <Decision topic>
+
+// Use this template when brainstorming has produced 3+ alternatives with
+// cross-cutting pros and cons. Reason about the options in prose first;
+// this file surfaces the structure of that reasoning for the user / reviewer.
+
+## Options under consideration
+
+[Option A]: <One-sentence summary of option A>.
+  + <Pro A1>: <Reason in favor>.
+  + <Pro A2>: <Reason in favor>.
+  - <Con A1>: <Reason against>.
+
+[Option B]: <One-sentence summary of option B>.
+  + <Pro B1>: <Reason in favor>.
+  - <Con B1>: <Reason against>.
+  - <Con B2>: <Reason against>.
+
+[Option C]: <One-sentence summary of option C>.
+  + <Pro C1>: <Reason in favor>.
+  - <Con C1>: <Reason against>.
+
+## Cross-cutting considerations
+
+// Pros / cons that apply to multiple options — labelled once, referenced from each.
+<Cross-cut consideration>: <Why this consideration cuts across options>.
+  +> [Option A]
+  +> [Option B]
+
+## Recommended
+
+[Recommended]: <Which option, in one sentence>.
+  <+ <Decisive pro>: <The reason that tipped it>.
+  <+ <Secondary pro>

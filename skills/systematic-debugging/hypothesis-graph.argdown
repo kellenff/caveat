@@ -1,0 +1,57 @@
+# Bug: `git init` creates `.git` inside packages/core
+
+// Worked example for the hypothesis-elimination template. Investigation
+// happened in prose (test runs, console.error instrumentation, reading
+// setupCoreTest). This file surfaces what that investigation produced
+// so the next test is self-selecting.
+
+[Symptom]: After `setupCoreTest()` returns, `packages/core/.git` exists where no `.git` should be.
+
+<H1: cwd is empty string>
+  (1) `git init` with cwd `""` resolves to the current working directory of the parent process.
+  (2) The parent process runs in `packages/core/`.
+  -----
+  (3) `.git` is created in `packages/core/`.
+
+// Predicted: stack trace shows `cwd=""` immediately before `execFile("git", ["init"])`.
+// Observed:  console.error('cwd=', cwd) in spawnGit logged `cwd=` (empty) at line packages/core/src/git.ts:42.
+// Verdict:   confirmed.
+
+<H2: cwd is a wrong relative path>
+  (1) `git init` is called with a path like `../tmp` that resolves to the wrong directory.
+  -----
+  (2) `.git` is created at the resolved wrong path.
+
+// Predicted: trace shows non-empty cwd that resolves outside the intended tempDir.
+// Observed:  trace shows empty cwd, not a wrong path.
+// Verdict:   refuted.
+
+<H3: a stale .git is left over from a prior run>
+  (1) A previous test created `packages/core/.git` and the cleanup step did not remove it.
+  -----
+  (2) The .git directory persists across runs.
+
+// Predicted: `git status -sb` from a fresh clone (no prior runs) still shows the .git.
+// Observed:  fresh clone, single run → .git still appears.
+// Verdict:   refuted.
+
+## Elimination edges
+
+<H1: cwd is empty string>
+  +> [Symptom]
+
+<H2: cwd is a wrong relative path>
+  -> <H2: cwd is a wrong relative path>
+
+<H3: a stale .git is left over from a prior run>
+  -> <H3: a stale .git is left over from a prior run>
+
+## Root cause trace
+
+<H1 origin>: `setupCoreTest()` initializes `tempDir = ""` and only later assigns the real path, but `spawnGit` is called with the initial value.
+  +> <H1: cwd is empty string>
+
+## Next test
+
+[Next test]: Move `tempDir` assignment ahead of any `spawnGit` call in `setupCoreTest()`, re-run the failing test, confirm `.git` lands in `tempDir` and not in `packages/core/`.
+  <+ <H1 origin>

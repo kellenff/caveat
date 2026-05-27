@@ -1,0 +1,7 @@
+{
+  "name": "structured-argumentation-tests",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "bun test"
+  }
+}

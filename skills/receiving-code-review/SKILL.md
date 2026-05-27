@@ -87,6 +87,41 @@ IF conflicts with your human partner's prior decisions:
 
 **your human partner's rule:** "External feedback - be skeptical, but check carefully"
 
+## When a single review comment is dense
+
+```text
+IF a single review comment bundles 3+ joined claims
+   (e.g., "this is wrong because A, also B, and B implies C, therefore D"):
+  Decompose into the reviewer's conclusion plus the premises it rests on,
+  using `snowball:structured-argumentation` (claim-decomposition template).
+  Each premise becomes its own VERIFY-against-codebase task.
+  The claim stands only if every premise verifies.
+```
+
+The argdown graph is the **verification task list**, not a substitute for verification. The "Forbidden Responses" rule still holds: you cannot say "you're absolutely right" until each premise has been independently checked against the codebase.
+
+**Example (inline form, embedded in your reply):**
+
+````text
+````argdown
+[Reviewer claim]: Remove the legacy NSImage path; the modern API works on all targets.
+
+<P1: Build target >= 10.15>: Package.swift platforms.
+// Verify: read Package.swift.
+<P2: Modern API exists at 10.15>: Apple docs availability annotation.
+// Verify: check developer.apple.com availability for the API.
+<P3: Modern API has equivalent semantics for our use>: behavior parity.
+// Verify: read both implementations and any tests.
+
+[Reviewer claim]
+  <+ <P1: Build target >= 10.15>
+  <+ <P2: Modern API exists at 10.15>
+  <+ <P3: Modern API has equivalent semantics for our use>
+````
+````
+
+Skip this decomposition for comments with one claim or simple bug reports — the existing pattern (verify → respond) is enough.
+
 ## YAGNI Check for "Professional" Features
 
 ```text

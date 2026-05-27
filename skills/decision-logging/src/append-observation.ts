@@ -13,13 +13,21 @@ export const SOURCE_SKILLS = [
   "ambient",
 ] as const;
 
+export const SCHEMA_VERSIONS = ["1.0", "1.1"] as const;
+
 export type ObservationType = (typeof TYPES)[number];
 export type ObservationConfidence = (typeof CONFIDENCES)[number];
 export type ObservationSource = (typeof SOURCES)[number];
 export type ObservationSourceSkill = (typeof SOURCE_SKILLS)[number];
+export type SchemaVersion = (typeof SCHEMA_VERSIONS)[number];
+
+export interface ArgdownRef {
+  path: string;
+  node_label: string;
+}
 
 export interface Observation {
-  schema_version: "1.0";
+  schema_version: SchemaVersion;
   timestamp: string;
   session_id: string;
   type: ObservationType;
@@ -30,6 +38,7 @@ export interface Observation {
   related_files: string[];
   related_decision: string | null;
   tags: [ObservationSourceSkill, ...string[]];
+  argdown_ref?: ArgdownRef;
 }
 
 export interface ValidationResult {
@@ -56,7 +65,9 @@ export function validate(obs: unknown): ValidationResult {
   requireString("content");
   requireString("rationale");
 
-  if (o.schema_version !== "1.0") errors.push('schema_version must be "1.0"');
+  if (!SCHEMA_VERSIONS.includes(o.schema_version as SchemaVersion)) {
+    errors.push(`schema_version must be one of ${SCHEMA_VERSIONS.join(", ")}`);
+  }
   if (!TYPES.includes(o.type as ObservationType)) {
     errors.push(`type must be one of ${TYPES.join(", ")}`);
   }
@@ -76,6 +87,22 @@ export function validate(obs: unknown): ValidationResult {
   }
   if (o.related_decision !== null && typeof o.related_decision !== "string") {
     errors.push("related_decision must be string or null");
+  }
+  if (o.argdown_ref !== undefined) {
+    if (o.schema_version === "1.0") {
+      errors.push("argdown_ref requires schema_version 1.1");
+    }
+    const ref = o.argdown_ref as Record<string, unknown>;
+    if (!ref || typeof ref !== "object") {
+      errors.push("argdown_ref must be an object");
+    } else {
+      if (typeof ref.path !== "string" || !ref.path) {
+        errors.push("argdown_ref.path required (non-empty string)");
+      }
+      if (typeof ref.node_label !== "string" || !ref.node_label) {
+        errors.push("argdown_ref.node_label required (non-empty string)");
+      }
+    }
   }
 
   return { valid: errors.length === 0, errors };

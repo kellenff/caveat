@@ -69,3 +69,44 @@ test("appendObservation throws on invalid input", () => {
     cleanupTempRepo(repo);
   }
 });
+
+test("validate accepts schema_version 1.1 with argdown_ref", () => {
+  const v11: Observation = {
+    ...valid,
+    schema_version: "1.1",
+    argdown_ref: { path: "../specs/2026-05-27-design.argdown", node_label: "Recommended" },
+  };
+  expect(validate(v11).valid).toBe(true);
+});
+
+test("validate accepts schema_version 1.1 without argdown_ref (additive)", () => {
+  expect(validate({ ...valid, schema_version: "1.1" }).valid).toBe(true);
+});
+
+test("validate rejects argdown_ref on schema_version 1.0", () => {
+  const bad: Observation = {
+    ...valid,
+    argdown_ref: { path: "x.argdown", node_label: "x" },
+  };
+  const result = validate(bad);
+  expect(result.valid).toBe(false);
+  expect(result.errors.some((e) => e.includes("argdown_ref requires schema_version 1.1"))).toBe(
+    true,
+  );
+});
+
+test("validate rejects malformed argdown_ref", () => {
+  const bad: Observation = {
+    ...valid,
+    schema_version: "1.1",
+    argdown_ref: { path: "", node_label: "x" },
+  };
+  const result = validate(bad);
+  expect(result.valid).toBe(false);
+  expect(result.errors.some((e) => e.includes("argdown_ref.path"))).toBe(true);
+});
+
+test("validate rejects unknown schema_version", () => {
+  const bad = { ...valid, schema_version: "2.0" } as unknown as Observation;
+  expect(validate(bad).valid).toBe(false);
+});

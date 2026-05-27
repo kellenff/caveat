@@ -1,0 +1,30 @@
+# Reviewer comment on <PR or file>
+
+// Use when a single review comment bundles multiple joined claims
+// ("this is wrong because A, also B, and B implies C, therefore D").
+// Decompose into the reviewer's conclusion plus the premises it rests on.
+// Each premise becomes a verification task — argdown is the task list,
+// not a substitute for verification.
+
+[Reviewer claim]: <The reviewer's conclusion, in their words or paraphrased>.
+
+<P1: First premise the claim rests on>: <Statement>.
+// Verify by: <exact command or file:line to check>.
+// Result:    <pass | fail | needs-clarification>.
+
+<P2: Second premise>: <Statement>.
+// Verify by: <exact command or file:line to check>.
+// Result:    <pass | fail | needs-clarification>.
+
+<P3: Third premise>: <Statement>.
+// Verify by: <exact command or file:line to check>.
+// Result:    <pass | fail | needs-clarification>.
+
+[Reviewer claim]
+  <+ <P1: First premise the claim rests on>
+  <+ <P2: Second premise>
+  <+ <P3: Third premise>
+
+// Rule: the claim stands only if every <P_i> verifies. If any premise fails
+// or needs clarification, push back with the specific premise — do NOT
+// implement the claim, and do NOT respond with performative agreement.

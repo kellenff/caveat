@@ -30,6 +30,12 @@ All hooks no-op silently when the session is outside a git repo.
 
 The `Stop` and `PreCompact` hooks coordinate via a per-session cursor at `~/.snowball/checkpoints/<session_id>.cursor` and a non-blocking `flock`. Each transcript region is fed to `claude -p` exactly once: `PreCompact` captures the pre-compaction transcript before context is summarized, and `Stop` captures whatever new turns happened after the last `PreCompact`. Long sessions abandoned after compacting still emit pre-compaction observations.
 
+## Argument-graph attachment (schema v1.1)
+
+When a captured decision references reasoning that was externalized via `snowball:structured-argumentation`, the MADR may include `snowball.argdown_path` in frontmatter pointing at a sibling `.argdown` file, and `snowball.argdown_root_label` naming the conclusion node inside that file. Observations may include an `argdown_ref` pointing at a node label within a referenced graph. All fields are **optional and additive** — MADRs and observations without them remain valid.
+
+These fields exist for downstream consumers (flannel etc.) that want to render the argument structure as a graph, not for re-reading by future agents in the same session. See `references/schema.md` §"v1.1 additions" for the contract.
+
 ## Why hooks, not skill cross-references
 
 Capture is passive: no existing skill needs modification, and operators don't need to remember to log decisions. The brainstorming, writing-plans, systematic-debugging, and code-review skills are untouched — they generate the events; the hooks observe them.

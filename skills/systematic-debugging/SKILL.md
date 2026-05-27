@@ -150,6 +150,7 @@ You MUST complete each phase before proceeding to the next.
    - State clearly: "I think X is the root cause because Y"
    - Write it down
    - Be specific, not vague
+   - **OPTIONAL SUB-SKILL:** Once you have cycled through 2+ hypotheses without resolution, before forming a third, externalize the elimination tree with `snowball:structured-argumentation` using the hypothesis-elimination template. Fill in predicted vs. observed evidence from real Phase 1 investigation — argdown surfaces the structure that investigation produced, it does not invent hypotheses. A worked example sits alongside this skill at `skills/systematic-debugging/hypothesis-graph.argdown`.
 
 2. **Test Minimally**
    - Make the SMALLEST possible change to test hypothesis
@@ -209,6 +210,8 @@ You MUST complete each phase before proceeding to the next.
    - Should we refactor architecture vs. continue fixing symptoms?
 
    **Discuss with your human partner before attempting more fixes**
+
+   Before that discussion, render the failed-hypothesis history as a `snowball:structured-argumentation` graph so the conversation has a shared visual ground — the discussion is about architecture, not about re-litigating each prior hypothesis.
 
    This is NOT a failed hypothesis - this is a wrong architecture.
 
