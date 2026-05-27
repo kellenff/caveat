@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate JSON manifests
+        run: |
+          python3 <<'PY'
+          import json, sys
+          files = [
+              ".claude-plugin/plugin.json",
+              ".claude-plugin/marketplace.json",
+              ".codex-plugin/plugin.json",
+              ".cursor-plugin/plugin.json",
+              ".gitlab/duo/hooks.json",
+              "gemini-extension.json",
+              "hooks/hooks.json",
+              "hooks/hooks-cursor.json",
+              "package.json",
+              ".version-bump.json",
+          ]
+          fail = 0
+          for f in files:
+              try:
+                  with open(f) as fh:
+                      json.load(fh)
+                  print(f"  OK  {f}")
+              except FileNotFoundError:
+                  print(f"  MISSING  {f}", file=sys.stderr)
+                  fail = 1
+              except json.JSONDecodeError as e:
+                  print(f"  INVALID  {f}: {e}", file=sys.stderr)
+                  fail = 1
+          sys.exit(fail)
+          PY
+
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: ShellCheck
+        run: |
+          shellcheck \
+            scripts/install-into-project.sh \
+            scripts/bump-version.sh \
+            hooks/session-start \
+            tests/gitlab-duo/*.sh
+
+      - name: Version drift check
+        run: bash scripts/bump-version.sh --check
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: GitLab Duo bootstrap output test
+        run: bash tests/gitlab-duo/test-bootstrap-output.sh
+
+      - name: GitLab Duo install-into-project test
+        run: bash tests/gitlab-duo/test-install-into-project.sh

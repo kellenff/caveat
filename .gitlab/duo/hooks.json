@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${DUO_PROJECT_DIR}/hooks/run-hook.cmd\" session-start"
+          }
+        ]
+      }
+    ]
+  }
+}
