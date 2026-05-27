@@ -11,12 +11,23 @@ APPENDER="$SCRIPT_DIR/append-observation.cjs"
 ERROR_LOG="$HOME/.snowball/decision-logging-errors.log"
 mkdir -p "$(dirname "$ERROR_LOG")"
 
+CHECKPOINT_DIR="$HOME/.snowball/checkpoints"
+mkdir -p "$CHECKPOINT_DIR"
+CURSOR="$CHECKPOINT_DIR/${SESSION_ID}.cursor"
+
 # Encode project path the way Claude Code stores transcripts: leading dash, then '/' → '-'
 ENCODED="-$(echo "$GIT_ROOT" | sed 's|^/||; s|/|-|g')"
 TRANSCRIPT="$HOME/.claude/projects/$ENCODED/$SESSION_ID.jsonl"
 
 if [ ! -f "$TRANSCRIPT" ]; then
   echo "[$(date)] transcript not found: $TRANSCRIPT" >>"$ERROR_LOG"
+  exit 0
+fi
+
+PROCESSED=$(cat "$CURSOR" 2>/dev/null || echo 0)
+TOTAL=$(wc -l <"$TRANSCRIPT" | tr -d ' ')
+
+if [ "$TOTAL" -le "$PROCESSED" ]; then
   exit 0
 fi
 
@@ -34,3 +45,6 @@ EXTRACTION=$("$CLAUDE_BIN" -p \
 
 # Pipe extracted JSONL to the appender (it skips invalid lines internally)
 echo "$EXTRACTION" | (cd "$GIT_ROOT" && node "$APPENDER") 2>>"$ERROR_LOG"
+
+# Atomic cursor update: write to tmp, then rename
+echo "$TOTAL" >"${CURSOR}.tmp" && mv "${CURSOR}.tmp" "$CURSOR"

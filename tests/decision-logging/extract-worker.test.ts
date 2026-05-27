@@ -29,3 +29,35 @@ test("worker honors SNOWBALL_CLAUDE_BIN env var", () => {
     cleanupWorkerEnv(env);
   }
 });
+
+test("first run creates cursor file at total line count", () => {
+  const env = setupWorkerEnv({
+    transcriptLines: ['{"turn": 1}', '{"turn": 2}', '{"turn": 3}'],
+    fakeClaudeOutput: validObservation + "\n",
+  });
+  try {
+    const result = runWorker(env);
+    expect(result.status).toBe(0);
+    expect(fs.existsSync(env.cursorPath)).toBe(true);
+    expect(fs.readFileSync(env.cursorPath, "utf-8").trim()).toBe("3");
+  } finally {
+    cleanupWorkerEnv(env);
+  }
+});
+
+test("worker exits early when cursor equals total lines", () => {
+  const env = setupWorkerEnv({
+    transcriptLines: ['{"turn": 1}', '{"turn": 2}'],
+    fakeClaudeOutput: validObservation + "\n",
+    initialCursor: 2,
+  });
+  try {
+    const result = runWorker(env);
+    expect(result.status).toBe(0);
+    expect(fs.existsSync(env.claudeMarker)).toBe(false);
+    expect(fs.existsSync(env.observationsPath)).toBe(false);
+    expect(fs.readFileSync(env.cursorPath, "utf-8").trim()).toBe("2");
+  } finally {
+    cleanupWorkerEnv(env);
+  }
+});
