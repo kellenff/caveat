@@ -1,8 +1,0 @@
-# Decision-logging hand-written .cjs files are being replaced with TS+bundle (Task 9).
-# Re-enable after that task — bundles should pass oxlint cleanly.
-skills/decision-logging/scripts/ask-user-question-bridge.cjs
-skills/decision-logging/scripts/user-prompt-bridge.cjs
-skills/decision-logging/scripts/write-madr.cjs
-skills/decision-logging/scripts/append-observation.cjs
-skills/decision-logging/scripts/approval-phrases.cjs
-skills/decision-logging/scripts/git-root.cjs
