@@ -1,18 +1,18 @@
 const APPROVAL_PHRASES = [
-  'lgtm',
-  'looks good',
-  'ship it',
-  'approved',
-  'approve',
-  'go ahead',
+  "lgtm",
+  "looks good",
+  "ship it",
+  "approved",
+  "approve",
+  "go ahead",
   "let's do that",
-  'yes do that',
-  'merge it',
-  'do it',
+  "yes do that",
+  "merge it",
+  "do it",
 ];
 
 function matchesApproval(prompt) {
-  if (typeof prompt !== 'string') return false;
+  if (typeof prompt !== "string") return false;
   const trimmed = prompt.trim().toLowerCase();
   if (!trimmed) return false;
 

@@ -5,10 +5,10 @@
  * Auto-registers skills directory via config hook (no symlinks needed).
  */
 
-import path from 'path';
-import fs from 'fs';
-import os from 'os';
-import { fileURLToPath } from 'url';
+import path from "path";
+import fs from "fs";
+import os from "os";
+import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -21,11 +21,14 @@ const extractAndStripFrontmatter = (content) => {
   const body = match[2];
   const frontmatter = {};
 
-  for (const line of frontmatterStr.split('\n')) {
-    const colonIdx = line.indexOf(':');
+  for (const line of frontmatterStr.split("\n")) {
+    const colonIdx = line.indexOf(":");
     if (colonIdx > 0) {
       const key = line.slice(0, colonIdx).trim();
-      const value = line.slice(colonIdx + 1).trim().replace(/^["']|["']$/g, '');
+      const value = line
+        .slice(colonIdx + 1)
+        .trim()
+        .replace(/^["']|["']$/g, "");
       frontmatter[key] = value;
     }
   }
@@ -35,12 +38,12 @@ const extractAndStripFrontmatter = (content) => {
 
 // Normalize a path: trim whitespace, expand ~, resolve to absolute
 const normalizePath = (p, homeDir) => {
-  if (!p || typeof p !== 'string') return null;
+  if (!p || typeof p !== "string") return null;
   let normalized = p.trim();
   if (!normalized) return null;
-  if (normalized.startsWith('~/')) {
+  if (normalized.startsWith("~/")) {
     normalized = path.join(homeDir, normalized.slice(2));
-  } else if (normalized === '~') {
+  } else if (normalized === "~") {
     normalized = homeDir;
   }
   return path.resolve(normalized);
@@ -54,9 +57,9 @@ let _bootstrapCache = undefined; // undefined = not yet loaded, null = file miss
 
 export const SnowballPlugin = async ({ client, directory }) => {
   const homeDir = os.homedir();
-  const snowballSkillsDir = path.resolve(__dirname, '../../skills');
+  const snowballSkillsDir = path.resolve(__dirname, "../../skills");
   const envConfigDir = normalizePath(process.env.OPENCODE_CONFIG_DIR, homeDir);
-  const configDir = envConfigDir || path.join(homeDir, '.config/opencode');
+  const configDir = envConfigDir || path.join(homeDir, ".config/opencode");
 
   // Helper to generate bootstrap content (cached after first call)
   const getBootstrapContent = () => {
@@ -64,13 +67,13 @@ export const SnowballPlugin = async ({ client, directory }) => {
     if (_bootstrapCache !== undefined) return _bootstrapCache;
 
     // Try to load using-snowball skill
-    const skillPath = path.join(snowballSkillsDir, 'using-snowball', 'SKILL.md');
+    const skillPath = path.join(snowballSkillsDir, "using-snowball", "SKILL.md");
     if (!fs.existsSync(skillPath)) {
       _bootstrapCache = null;
       return null;
     }
 
-    const fullContent = fs.readFileSync(skillPath, 'utf8');
+    const fullContent = fs.readFileSync(skillPath, "utf8");
     const { content } = extractAndStripFrontmatter(fullContent);
 
     const toolMapping = `**Tool Mapping for OpenCode:**
@@ -117,19 +120,20 @@ ${toolMapping}
     // opencode's prompt.ts reloads messages from DB each step.  Fresh message
     // arrays may need injection again, so getBootstrapContent() must not do
     // repeated disk work.
-    'experimental.chat.messages.transform': async (_input, output) => {
+    "experimental.chat.messages.transform": async (_input, output) => {
       const bootstrap = getBootstrapContent();
       if (!bootstrap || !output.messages.length) return;
-      const firstUser = output.messages.find(m => m.info.role === 'user');
+      const firstUser = output.messages.find((m) => m.info.role === "user");
       if (!firstUser || !firstUser.parts.length) return;
 
       // Guard: skip if first user message already contains bootstrap.
       // This prevents double injection when OpenCode passes an already
       // transformed in-memory message array through the hook again.
-      if (firstUser.parts.some(p => p.type === 'text' && p.text.includes('EXTREMELY_IMPORTANT'))) return;
+      if (firstUser.parts.some((p) => p.type === "text" && p.text.includes("EXTREMELY_IMPORTANT")))
+        return;
 
       const ref = firstUser.parts[0];
-      firstUser.parts.unshift({ ...ref, type: 'text', text: bootstrap });
-    }
+      firstUser.parts.unshift({ ...ref, type: "text", text: bootstrap });
+    },
   };
 };

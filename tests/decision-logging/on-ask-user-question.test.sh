@@ -8,8 +8,8 @@ FAIL=0
 
 # Test 1: handler no-ops outside a git repo
 TMP_NONGIT=$(mktemp -d)
-echo '{"tool_input":{},"tool_response":{},"session_id":"s","tool_use_id":"t"}' | \
-  ( cd "$TMP_NONGIT" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER" )
+echo '{"tool_input":{},"tool_response":{},"session_id":"s","tool_use_id":"t"}' \
+  | (cd "$TMP_NONGIT" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER")
 status=$?
 if [ "$status" -ne 0 ]; then
   echo "[FAIL] handler should exit 0 outside git repo (got $status)"
@@ -21,7 +21,7 @@ rm -rf "$TMP_NONGIT"
 
 # Test 2: handler writes a MADR for a synthetic PostToolUse payload
 TMP_REPO=$(mktemp -d)
-( cd "$TMP_REPO" && git init -q && git config user.email t@t && git config user.name t )
+(cd "$TMP_REPO" && git init -q && git config user.email t@t && git config user.name t)
 
 PAYLOAD='{
   "session_id": "test-session-1",
@@ -42,7 +42,7 @@ PAYLOAD='{
   }
 }'
 
-echo "$PAYLOAD" | ( cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER" )
+echo "$PAYLOAD" | (cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER")
 
 DECISIONS_DIR="$TMP_REPO/docs/snowball/decisions"
 if [ ! -d "$DECISIONS_DIR" ]; then
@@ -56,8 +56,8 @@ else
   else
     echo "[PASS] MADR file written"
     MADR_FILE=$(ls "$DECISIONS_DIR"/*.md)
-    if grep -q 'capture_mechanism: ask-user-question' "$MADR_FILE" && \
-       grep -q 'Two-tier' "$MADR_FILE"; then
+    if grep -q 'capture_mechanism: ask-user-question' "$MADR_FILE" \
+      && grep -q 'Two-tier' "$MADR_FILE"; then
       echo "[PASS] MADR contains capture_mechanism and chosen option"
     else
       echo "[FAIL] MADR content unexpected:"

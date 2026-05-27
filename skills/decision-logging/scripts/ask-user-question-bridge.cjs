@@ -2,12 +2,12 @@
 // per question-answer pair. Errors are caught and logged; the bridge always
 // exits 0 so the hook doesn't disrupt the session.
 
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const { writeMadr } = require('./write-madr.cjs');
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
+const { writeMadr } = require("./write-madr.cjs");
 
-const ERROR_LOG = path.join(os.homedir(), '.snowball', 'decision-logging-errors.log');
+const ERROR_LOG = path.join(os.homedir(), ".snowball", "decision-logging-errors.log");
 
 function logError(msg) {
   try {
@@ -18,9 +18,11 @@ function logError(msg) {
   }
 }
 
-let raw = '';
-process.stdin.on('data', (chunk) => { raw += chunk; });
-process.stdin.on('end', () => {
+let raw = "";
+process.stdin.on("data", (chunk) => {
+  raw += chunk;
+});
+process.stdin.on("end", () => {
   let payload;
   try {
     payload = JSON.parse(raw);
@@ -31,8 +33,8 @@ process.stdin.on('end', () => {
 
   const questions = (payload.tool_input && payload.tool_input.questions) || [];
   const answers = (payload.tool_response && payload.tool_response.answers) || {};
-  const sessionId = payload.session_id || 'unknown';
-  const sourceEventId = payload.tool_use_id || 'unknown';
+  const sessionId = payload.session_id || "unknown";
+  const sourceEventId = payload.tool_use_id || "unknown";
 
   const isoDate = new Date().toISOString();
 
@@ -40,29 +42,31 @@ process.stdin.on('end', () => {
     const answer = answers[q.question];
     if (!answer) continue;
 
-    const chosen = (q.options || []).find((o) => o.label === answer)
-      || { label: answer, description: '' };
+    const chosen = (q.options || []).find((o) => o.label === answer) || {
+      label: answer,
+      description: "",
+    };
 
     const input = {
-      title: String(q.question).replace(/\?+$/, ''),
-      status: 'accepted',
+      title: String(q.question).replace(/\?+$/, ""),
+      status: "accepted",
       date: isoDate,
-      deciders: [process.env.USER || 'unknown'],
+      deciders: [process.env.USER || "unknown"],
       snowball: {
-        schema_version: '1.0',
-        source: 'operator',
-        confidence: 'high',
-        capture_mechanism: 'ask-user-question',
+        schema_version: "1.0",
+        source: "operator",
+        confidence: "high",
+        capture_mechanism: "ask-user-question",
         session_id: sessionId,
         source_event_id: sourceEventId,
         supersedes: null,
-        tags: ['ambient'],
+        tags: ["ambient"],
       },
       body: {
-        context: q.header ? `Question category: ${q.header}.` : '',
+        context: q.header ? `Question category: ${q.header}.` : "",
         considered_options: (q.options || []).map((o) => ({
           name: o.label,
-          description: o.description || '',
+          description: o.description || "",
         })),
         decision_outcome: `Chose **${chosen.label}**. ${chosen.description}`,
       },

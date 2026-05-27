@@ -1,10 +1,10 @@
-const { execFileSync } = require('child_process');
+const { execFileSync } = require("child_process");
 
 function detectGitRoot(startDir) {
   try {
-    const out = execFileSync('git', ['rev-parse', '--show-toplevel'], {
+    const out = execFileSync("git", ["rev-parse", "--show-toplevel"], {
       cwd: startDir || process.cwd(),
-      stdio: ['ignore', 'pipe', 'ignore'],
+      stdio: ["ignore", "pipe", "ignore"],
     });
     return out.toString().trim();
   } catch {

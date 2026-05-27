@@ -12,9 +12,9 @@ PROMPT_FILE="$2"
 MAX_TURNS="${3:-3}"
 
 if [ -z "$SKILL_NAME" ] || [ -z "$PROMPT_FILE" ]; then
-    echo "Usage: $0 <skill-name> <prompt-file> [max-turns]"
-    echo "Example: $0 systematic-debugging ./test-prompts/debugging.txt"
-    exit 1
+  echo "Usage: $0 <skill-name> <prompt-file> [max-turns]"
+  echo "Example: $0 systematic-debugging ./test-prompts/debugging.txt"
+  exit 1
 fi
 
 # Get the directory where this script lives (should be tests/skill-triggering)
@@ -46,11 +46,11 @@ cd "$OUTPUT_DIR"
 echo "Plugin dir: $PLUGIN_DIR"
 echo "Running claude -p with naive prompt..."
 timeout 300 claude -p "$PROMPT" \
-    --plugin-dir "$PLUGIN_DIR" \
-    --dangerously-skip-permissions \
-    --max-turns "$MAX_TURNS" \
-    --output-format stream-json \
-    > "$LOG_FILE" 2>&1 || true
+  --plugin-dir "$PLUGIN_DIR" \
+  --dangerously-skip-permissions \
+  --max-turns "$MAX_TURNS" \
+  --output-format stream-json \
+  >"$LOG_FILE" 2>&1 || true
 
 echo ""
 echo "=== Results ==="
@@ -60,11 +60,11 @@ echo "=== Results ==="
 # Match either "skill":"skillname" or "skill":"namespace:skillname"
 SKILL_PATTERN='"skill":"([^"]*:)?'"${SKILL_NAME}"'"'
 if grep -q '"name":"Skill"' "$LOG_FILE" && grep -qE "$SKILL_PATTERN" "$LOG_FILE"; then
-    echo "✅ PASS: Skill '$SKILL_NAME' was triggered"
-    TRIGGERED=true
+  echo "✅ PASS: Skill '$SKILL_NAME' was triggered"
+  TRIGGERED=true
 else
-    echo "❌ FAIL: Skill '$SKILL_NAME' was NOT triggered"
-    TRIGGERED=false
+  echo "❌ FAIL: Skill '$SKILL_NAME' was NOT triggered"
+  TRIGGERED=false
 fi
 
 # Show what skills WERE triggered
@@ -82,7 +82,7 @@ echo "Full log: $LOG_FILE"
 echo "Timestamp: $TIMESTAMP"
 
 if [ "$TRIGGERED" = "true" ]; then
-    exit 0
+  exit 0
 else
-    exit 1
+  exit 1
 fi

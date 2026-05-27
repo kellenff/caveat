@@ -29,7 +29,7 @@ cd "$TEST_PROJECT"
 mkdir -p docs/snowball/specs
 
 # Create a spec document WITH INTENTIONAL ERRORS for the reviewer to catch
-cat > docs/snowball/specs/test-feature-design.md <<'EOF'
+cat >docs/snowball/specs/test-feature-design.md <<'EOF'
 # Test Feature Design
 
 ## Overview
@@ -91,10 +91,10 @@ Output your review in the format specified in the template."
 
 echo "================================================================================"
 cd "$SCRIPT_DIR/../.." && timeout 120 claude -p "$PROMPT" --permission-mode bypassPermissions 2>&1 | tee "$OUTPUT_FILE" || {
-    echo ""
-    echo "================================================================================"
-    echo "EXECUTION FAILED (exit code: $?)"
-    exit 1
+  echo ""
+  echo "================================================================================"
+  echo "EXECUTION FAILED (exit code: $?)"
+  exit 1
 }
 echo "================================================================================"
 
@@ -111,42 +111,42 @@ echo ""
 # Test 1: Reviewer found the TODO
 echo "Test 1: Reviewer found TODO..."
 if grep -qi "TODO" "$OUTPUT_FILE" && grep -qi "requirements\|Requirements" "$OUTPUT_FILE"; then
-    echo "  [PASS] Reviewer identified TODO in Requirements section"
+  echo "  [PASS] Reviewer identified TODO in Requirements section"
 else
-    echo "  [FAIL] Reviewer did not identify TODO"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] Reviewer did not identify TODO"
+  FAILED=$((FAILED + 1))
 fi
 echo ""
 
 # Test 2: Reviewer found the "specified later" deferral
 echo "Test 2: Reviewer found 'specified later' deferral..."
 if grep -qi "specified later\|later\|defer\|incomplete\|error handling" "$OUTPUT_FILE"; then
-    echo "  [PASS] Reviewer identified deferred content"
+  echo "  [PASS] Reviewer identified deferred content"
 else
-    echo "  [FAIL] Reviewer did not identify deferred content"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] Reviewer did not identify deferred content"
+  FAILED=$((FAILED + 1))
 fi
 echo ""
 
 # Test 3: Reviewer output includes Issues section
 echo "Test 3: Review output format..."
 if grep -qi "issues\|Issues" "$OUTPUT_FILE"; then
-    echo "  [PASS] Review includes Issues section"
+  echo "  [PASS] Review includes Issues section"
 else
-    echo "  [FAIL] Review missing Issues section"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] Review missing Issues section"
+  FAILED=$((FAILED + 1))
 fi
 echo ""
 
 # Test 4: Reviewer did NOT approve (found issues)
 echo "Test 4: Reviewer verdict..."
 if grep -qi "Issues Found\|❌\|not approved\|issues found" "$OUTPUT_FILE"; then
-    echo "  [PASS] Reviewer correctly found issues (not approved)"
+  echo "  [PASS] Reviewer correctly found issues (not approved)"
 elif grep -qi "Approved\|✅" "$OUTPUT_FILE" && ! grep -qi "Issues Found\|❌" "$OUTPUT_FILE"; then
-    echo "  [FAIL] Reviewer incorrectly approved spec with errors"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] Reviewer incorrectly approved spec with errors"
+  FAILED=$((FAILED + 1))
 else
-    echo "  [PASS] Reviewer identified problems (ambiguous format but found issues)"
+  echo "  [PASS] Reviewer identified problems (ambiguous format but found issues)"
 fi
 echo ""
 
@@ -157,21 +157,21 @@ echo "========================================"
 echo ""
 
 if [ $FAILED -eq 0 ]; then
-    echo "STATUS: PASSED"
-    echo "All verification tests passed!"
-    echo ""
-    echo "The spec document reviewer correctly:"
-    echo "  ✓ Found TODO placeholder"
-    echo "  ✓ Found 'specified later' deferral"
-    echo "  ✓ Produced properly formatted review"
-    echo "  ✓ Did not approve spec with errors"
-    exit 0
+  echo "STATUS: PASSED"
+  echo "All verification tests passed!"
+  echo ""
+  echo "The spec document reviewer correctly:"
+  echo "  ✓ Found TODO placeholder"
+  echo "  ✓ Found 'specified later' deferral"
+  echo "  ✓ Produced properly formatted review"
+  echo "  ✓ Did not approve spec with errors"
+  exit 0
 else
-    echo "STATUS: FAILED"
-    echo "Failed $FAILED verification tests"
-    echo ""
-    echo "Output saved to: $OUTPUT_FILE"
-    echo ""
-    echo "Review the output to see what went wrong."
-    exit 1
+  echo "STATUS: FAILED"
+  echo "Failed $FAILED verification tests"
+  echo ""
+  echo "Output saved to: $OUTPUT_FILE"
+  echo ""
+  echo "Review the output to see what went wrong."
+  exit 1
 fi

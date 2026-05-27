@@ -8,13 +8,13 @@ repos:
       - id: trailing-whitespace
       - id: check-merge-conflict
       - id: check-added-large-files
-        args: ['--maxkb=500']
+        args: ["--maxkb=500"]
 
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.10.0-2
     hooks:
       - id: shfmt
-        args: ['-i', '2', '-ci', '-bn', '-s', '-w']
+        args: ["-i", "2", "-ci", "-bn", "-s", "-w"]
         exclude: ^hooks/run-hook\.cmd$
 
   - repo: https://github.com/shellcheck-py/shellcheck-py

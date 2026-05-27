@@ -2,14 +2,14 @@
 // writes a MADR with capture_mechanism=user-prompt-pattern, unless a recent
 // ask-user-question MADR already captured the same operator approval.
 
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const { matchesApproval } = require('./approval-phrases.cjs');
-const { writeMadr } = require('./write-madr.cjs');
-const { detectGitRoot } = require('./git-root.cjs');
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
+const { matchesApproval } = require("./approval-phrases.cjs");
+const { writeMadr } = require("./write-madr.cjs");
+const { detectGitRoot } = require("./git-root.cjs");
 
-const ERROR_LOG = path.join(os.homedir(), '.snowball', 'decision-logging-errors.log');
+const ERROR_LOG = path.join(os.homedir(), ".snowball", "decision-logging-errors.log");
 const DEDUP_WINDOW_MS = 60 * 1000;
 
 function logError(msg) {
@@ -20,9 +20,9 @@ function logError(msg) {
 }
 
 function isRecentAskUserQuestion(gitRoot) {
-  const dir = path.join(gitRoot, 'docs', 'snowball', 'decisions');
+  const dir = path.join(gitRoot, "docs", "snowball", "decisions");
   if (!fs.existsSync(dir)) return false;
-  const files = fs.readdirSync(dir).filter((f) => f.endsWith('.md'));
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith(".md"));
   if (!files.length) return false;
 
   // Find file with maximum mtimeMs (most recently modified)
@@ -39,13 +39,15 @@ function isRecentAskUserQuestion(gitRoot) {
 
   if (!latestPath) return false;
   if (Date.now() - latestMtime > DEDUP_WINDOW_MS) return false;
-  const content = fs.readFileSync(latestPath, 'utf8');
+  const content = fs.readFileSync(latestPath, "utf8");
   return /capture_mechanism:\s*ask-user-question/.test(content);
 }
 
-let raw = '';
-process.stdin.on('data', (chunk) => { raw += chunk; });
-process.stdin.on('end', () => {
+let raw = "";
+process.stdin.on("data", (chunk) => {
+  raw += chunk;
+});
+process.stdin.on("end", () => {
   let payload;
   try {
     payload = JSON.parse(raw);
@@ -54,8 +56,8 @@ process.stdin.on('end', () => {
     process.exit(0);
   }
 
-  const prompt = payload.prompt || '';
-  const sessionId = payload.session_id || 'unknown';
+  const prompt = payload.prompt || "";
+  const sessionId = payload.session_id || "unknown";
 
   if (!matchesApproval(prompt)) process.exit(0);
 
@@ -66,19 +68,19 @@ process.stdin.on('end', () => {
 
   const isoDate = new Date().toISOString();
   const input = {
-    title: 'Free-text operator approval',
-    status: 'accepted',
+    title: "Free-text operator approval",
+    status: "accepted",
     date: isoDate,
-    deciders: [process.env.USER || 'unknown'],
+    deciders: [process.env.USER || "unknown"],
     snowball: {
-      schema_version: '1.0',
-      source: 'operator',
-      confidence: 'high',
-      capture_mechanism: 'user-prompt-pattern',
+      schema_version: "1.0",
+      source: "operator",
+      confidence: "high",
+      capture_mechanism: "user-prompt-pattern",
       session_id: sessionId,
       source_event_id: `prompt-${Date.now()}`,
       supersedes: null,
-      tags: ['ambient'],
+      tags: ["ambient"],
     },
     body: {
       context: `Operator submitted approval phrase: "${prompt.trim()}"`,

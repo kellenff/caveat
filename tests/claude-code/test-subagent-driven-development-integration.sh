@@ -31,7 +31,7 @@ trap "cleanup_test_project $TEST_PROJECT" EXIT
 # Set up minimal Node.js project
 cd "$TEST_PROJECT"
 
-cat > package.json <<'EOF'
+cat >package.json <<'EOF'
 {
   "name": "test-project",
   "version": "1.0.0",
@@ -45,7 +45,7 @@ EOF
 mkdir -p src test docs/snowball/plans
 
 # Create a simple implementation plan
-cat > docs/snowball/plans/implementation-plan.md <<'EOF'
+cat >docs/snowball/plans/implementation-plan.md <<'EOF'
 # Test Implementation Plan
 
 This is a minimal plan to test the subagent-driven-development workflow.
@@ -120,7 +120,7 @@ echo ""
 OUTPUT_FILE="$TEST_PROJECT/claude-output.txt"
 
 # Create prompt file
-cat > "$TEST_PROJECT/prompt.txt" <<'EOF'
+cat >"$TEST_PROJECT/prompt.txt" <<'EOF'
 I want you to execute the implementation plan at docs/snowball/plans/implementation-plan.md using the subagent-driven-development skill.
 
 IMPORTANT: Follow the skill exactly. I will be verifying that you:
@@ -154,10 +154,10 @@ PLUGIN_DIR=$(cd "$SCRIPT_DIR/../.." && pwd)
 echo "Running Claude (plugin-dir: $PLUGIN_DIR, cwd: $TEST_PROJECT)..."
 echo "================================================================================"
 cd "$TEST_PROJECT" && timeout 1800 claude -p "$PROMPT" --plugin-dir "$PLUGIN_DIR" --allowed-tools=all --permission-mode bypassPermissions 2>&1 | tee "$OUTPUT_FILE" || {
-    echo ""
-    echo "================================================================================"
-    echo "EXECUTION FAILED (exit code: $?)"
-    exit 1
+  echo ""
+  echo "================================================================================"
+  echo "EXECUTION FAILED (exit code: $?)"
+  exit 1
 }
 echo "================================================================================"
 
@@ -178,9 +178,9 @@ SESSION_DIR="$HOME/.claude/projects/$(echo "$TEST_PROJECT_REAL" | sed 's|[^a-zA-
 SESSION_FILE=$(ls -t "$SESSION_DIR"/*.jsonl 2>/dev/null | head -1 || true)
 
 if [ -z "$SESSION_FILE" ]; then
-    echo "ERROR: Could not find session transcript file"
-    echo "Looked in: $SESSION_DIR"
-    exit 1
+  echo "ERROR: Could not find session transcript file"
+  echo "Looked in: $SESSION_DIR"
+  exit 1
 fi
 
 echo "Analyzing session transcript: $(basename "$SESSION_FILE")"
@@ -195,10 +195,10 @@ echo ""
 # Test 1: Skill was invoked
 echo "Test 1: Skill tool invoked..."
 if grep -q '"name":"Skill".*"skill":"snowball:subagent-driven-development"' "$SESSION_FILE"; then
-    echo "  [PASS] subagent-driven-development skill was invoked"
+  echo "  [PASS] subagent-driven-development skill was invoked"
 else
-    echo "  [FAIL] Skill was not invoked"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] Skill was not invoked"
+  FAILED=$((FAILED + 1))
 fi
 echo ""
 
@@ -206,10 +206,10 @@ echo ""
 echo "Test 2: Subagents dispatched..."
 task_count=$(grep -cE '"name":"(Agent|Task)"' "$SESSION_FILE" || echo "0")
 if [ "$task_count" -ge 2 ]; then
-    echo "  [PASS] $task_count subagents dispatched"
+  echo "  [PASS] $task_count subagents dispatched"
 else
-    echo "  [FAIL] Only $task_count subagent(s) dispatched (expected >= 2)"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] Only $task_count subagent(s) dispatched (expected >= 2)"
+  FAILED=$((FAILED + 1))
 fi
 echo ""
 
@@ -217,71 +217,71 @@ echo ""
 echo "Test 3: Task tracking..."
 todo_count=$(grep -c '"name":"TodoWrite"' "$SESSION_FILE" || echo "0")
 if [ "$todo_count" -ge 1 ]; then
-    echo "  [PASS] TodoWrite used $todo_count time(s) for task tracking"
+  echo "  [PASS] TodoWrite used $todo_count time(s) for task tracking"
 else
-    echo "  [FAIL] TodoWrite not used"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] TodoWrite not used"
+  FAILED=$((FAILED + 1))
 fi
 echo ""
 
 # Test 6: Implementation actually works
 echo "Test 6: Implementation verification..."
 if [ -f "$TEST_PROJECT/src/math.js" ]; then
-    echo "  [PASS] src/math.js created"
+  echo "  [PASS] src/math.js created"
 
-    if grep -q "export function add" "$TEST_PROJECT/src/math.js"; then
-        echo "  [PASS] add function exists"
-    else
-        echo "  [FAIL] add function missing"
-        FAILED=$((FAILED + 1))
-    fi
-
-    if grep -q "export function multiply" "$TEST_PROJECT/src/math.js"; then
-        echo "  [PASS] multiply function exists"
-    else
-        echo "  [FAIL] multiply function missing"
-        FAILED=$((FAILED + 1))
-    fi
-else
-    echo "  [FAIL] src/math.js not created"
+  if grep -q "export function add" "$TEST_PROJECT/src/math.js"; then
+    echo "  [PASS] add function exists"
+  else
+    echo "  [FAIL] add function missing"
     FAILED=$((FAILED + 1))
+  fi
+
+  if grep -q "export function multiply" "$TEST_PROJECT/src/math.js"; then
+    echo "  [PASS] multiply function exists"
+  else
+    echo "  [FAIL] multiply function missing"
+    FAILED=$((FAILED + 1))
+  fi
+else
+  echo "  [FAIL] src/math.js not created"
+  FAILED=$((FAILED + 1))
 fi
 
 if [ -f "$TEST_PROJECT/test/math.test.js" ]; then
-    echo "  [PASS] test/math.test.js created"
+  echo "  [PASS] test/math.test.js created"
 else
-    echo "  [FAIL] test/math.test.js not created"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] test/math.test.js not created"
+  FAILED=$((FAILED + 1))
 fi
 
 # Try running tests
-if cd "$TEST_PROJECT" && npm test > test-output.txt 2>&1; then
-    echo "  [PASS] Tests pass"
+if cd "$TEST_PROJECT" && npm test >test-output.txt 2>&1; then
+  echo "  [PASS] Tests pass"
 else
-    echo "  [FAIL] Tests failed"
-    cat test-output.txt
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] Tests failed"
+  cat test-output.txt
+  FAILED=$((FAILED + 1))
 fi
 echo ""
 
 # Test 7: Git commits show proper workflow
 echo "Test 7: Git commit history..."
 commit_count=$(git -C "$TEST_PROJECT" log --oneline | wc -l)
-if [ "$commit_count" -gt 2 ]; then  # Initial + at least 2 task commits
-    echo "  [PASS] Multiple commits created ($commit_count total)"
+if [ "$commit_count" -gt 2 ]; then # Initial + at least 2 task commits
+  echo "  [PASS] Multiple commits created ($commit_count total)"
 else
-    echo "  [FAIL] Too few commits ($commit_count, expected >2)"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] Too few commits ($commit_count, expected >2)"
+  FAILED=$((FAILED + 1))
 fi
 echo ""
 
 # Test 8: Check for extra features (spec compliance should catch)
 echo "Test 8: No extra features added (spec compliance)..."
 if grep -q "export function divide\|export function power\|export function subtract" "$TEST_PROJECT/src/math.js" 2>/dev/null; then
-    echo "  [WARN] Extra features found (spec review should have caught this)"
-    # Not failing on this as it tests reviewer effectiveness
+  echo "  [WARN] Extra features found (spec review should have caught this)"
+  # Not failing on this as it tests reviewer effectiveness
 else
-    echo "  [PASS] No extra features added"
+  echo "  [PASS] No extra features added"
 fi
 echo ""
 
@@ -300,23 +300,23 @@ echo "========================================"
 echo ""
 
 if [ $FAILED -eq 0 ]; then
-    echo "STATUS: PASSED"
-    echo "All verification tests passed!"
-    echo ""
-    echo "The subagent-driven-development skill correctly:"
-    echo "  ✓ Reads plan once at start"
-    echo "  ✓ Provides full task text to subagents"
-    echo "  ✓ Enforces self-review"
-    echo "  ✓ Runs spec compliance before code quality"
-    echo "  ✓ Spec reviewer verifies independently"
-    echo "  ✓ Produces working implementation"
-    exit 0
+  echo "STATUS: PASSED"
+  echo "All verification tests passed!"
+  echo ""
+  echo "The subagent-driven-development skill correctly:"
+  echo "  ✓ Reads plan once at start"
+  echo "  ✓ Provides full task text to subagents"
+  echo "  ✓ Enforces self-review"
+  echo "  ✓ Runs spec compliance before code quality"
+  echo "  ✓ Spec reviewer verifies independently"
+  echo "  ✓ Produces working implementation"
+  exit 0
 else
-    echo "STATUS: FAILED"
-    echo "Failed $FAILED verification tests"
-    echo ""
-    echo "Output saved to: $OUTPUT_FILE"
-    echo ""
-    echo "Review the output to see what went wrong."
-    exit 1
+  echo "STATUS: FAILED"
+  echo "Failed $FAILED verification tests"
+  echo ""
+  echo "Output saved to: $OUTPUT_FILE"
+  echo ""
+  echo "Review the output to see what went wrong."
+  exit 1
 fi

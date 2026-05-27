@@ -14,7 +14,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 CONFIG="$REPO_ROOT/.version-bump.json"
 
-if [[ ! -f "$CONFIG" ]]; then
+if [[ ! -f $CONFIG ]]; then
   echo "error: .version-bump.json not found at $CONFIG" >&2
   exit 1
 fi
@@ -37,7 +37,7 @@ write_json_field() {
   local jq_path
   jq_path=$(echo "$field" | sed -E 's/\.([0-9]+)/[\1]/g' | sed 's/^/./' | sed 's/\.\././g')
   local tmp="${file}.tmp"
-  jq "$jq_path = \"$value\"" "$file" > "$tmp" && mv "$tmp" "$file"
+  jq "$jq_path = \"$value\"" "$file" >"$tmp" && mv "$tmp" "$file"
 }
 
 # Read the list of declared files from config.
@@ -62,7 +62,7 @@ cmd_check() {
 
   while IFS=$'\t' read -r path field; do
     local fullpath="$REPO_ROOT/$path"
-    if [[ ! -f "$fullpath" ]]; then
+    if [[ ! -f $fullpath ]]; then
       printf "  %-45s  MISSING\n" "$path ($field)"
       has_drift=1
       continue
@@ -78,7 +78,7 @@ cmd_check() {
   # Check if all versions match
   local unique
   unique=$(printf '%s\n' "${versions[@]}" | sort -u | wc -l | tr -d ' ')
-  if [[ "$unique" -gt 1 ]]; then
+  if [[ $unique -gt 1 ]]; then
     echo "DRIFT DETECTED — versions are not in sync:"
     printf '%s\n' "${versions[@]}" | sort | uniq -c | sort -rn | while read -r count ver; do
       echo "  $ver ($count files)"
@@ -101,11 +101,11 @@ cmd_audit() {
   current_version=$(
     while IFS=$'\t' read -r path field; do
       local fullpath="$REPO_ROOT/$path"
-      [[ -f "$fullpath" ]] && read_json_field "$fullpath" "$field"
+      [[ -f $fullpath ]] && read_json_field "$fullpath" "$field"
     done < <(declared_files) | sort | uniq -c | sort -rn | head -1 | awk '{print $2}'
   )
 
-  if [[ -z "$current_version" ]]; then
+  if [[ -z $current_version ]]; then
     echo "error: could not determine current version" >&2
     return 1
   fi
@@ -139,14 +139,14 @@ cmd_audit() {
     # Check if this file is in the declared list
     local is_declared=0
     for dp in "${declared_paths[@]}"; do
-      if [[ "$rel_path" == "$dp" ]]; then
+      if [[ $rel_path == "$dp" ]]; then
         is_declared=1
         break
       fi
     done
 
-    if [[ "$is_declared" -eq 0 ]]; then
-      if [[ "$found_undeclared" -eq 0 ]]; then
+    if [[ $is_declared -eq 0 ]]; then
+      if [[ $found_undeclared -eq 0 ]]; then
         echo "UNDECLARED files containing '$current_version':"
         found_undeclared=1
       fi
@@ -154,7 +154,7 @@ cmd_audit() {
     fi
   done < <(grep -rn "${exclude_args[@]}" -F "$current_version" "$REPO_ROOT" 2>/dev/null || true)
 
-  if [[ "$found_undeclared" -eq 0 ]]; then
+  if [[ $found_undeclared -eq 0 ]]; then
     echo "No undeclared files contain the version string. All clear."
   else
     echo ""
@@ -177,7 +177,7 @@ cmd_bump() {
 
   while IFS=$'\t' read -r path field; do
     local fullpath="$REPO_ROOT/$path"
-    if [[ ! -f "$fullpath" ]]; then
+    if [[ ! -f $fullpath ]]; then
       echo "  SKIP (missing): $path"
       continue
     fi
@@ -202,7 +202,7 @@ case "${1:-}" in
   --audit)
     cmd_audit
     ;;
-  --help|-h|"")
+  --help | -h | "")
     echo "Usage: bump-version.sh <new-version> | --check | --audit"
     echo ""
     echo "  <new-version>  Bump all declared files to the given version"

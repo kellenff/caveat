@@ -9,12 +9,5 @@
   "homepage": "https://github.com/kellenff/snowball",
   "repository": "https://github.com/kellenff/snowball",
   "license": "MIT",
-  "keywords": [
-    "skills",
-    "tdd",
-    "debugging",
-    "collaboration",
-    "best-practices",
-    "workflows"
-  ]
+  "keywords": ["skills", "tdd", "debugging", "collaboration", "best-practices", "workflows"]
 }

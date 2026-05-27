@@ -26,7 +26,7 @@ cd "$TEST_PROJECT"
 
 # Baseline: a small "safe" implementation
 mkdir -p src
-cat > src/db.js <<'EOF'
+cat >src/db.js <<'EOF'
 import { Database } from "./database-driver.js";
 
 const db = new Database();
@@ -42,7 +42,7 @@ export async function findUserByEmail(email) {
 }
 EOF
 
-cat > package.json <<'EOF'
+cat >package.json <<'EOF'
 { "name": "test-codereview", "version": "1.0.0", "type": "module" }
 EOF
 
@@ -56,7 +56,7 @@ BASE_SHA=$(git rev-parse HEAD)
 # Second commit: plant two real bugs
 # 1. SQL injection — switch from parameterized to string concatenation
 # 2. Logs the user's password hash on every successful login
-cat > src/db.js <<'EOF'
+cat >src/db.js <<'EOF'
 import { Database } from "./database-driver.js";
 
 const db = new Database();
@@ -104,12 +104,12 @@ Print the reviewer's full output."
 echo "Running Claude (plugin-dir: $PLUGIN_DIR, cwd: $TEST_PROJECT)..."
 echo "================================================================================"
 cd "$TEST_PROJECT" && timeout 600 claude -p "$PROMPT" \
-    --plugin-dir "$PLUGIN_DIR" \
-    --permission-mode bypassPermissions 2>&1 | tee "$OUTPUT_FILE" || {
-    echo ""
-    echo "================================================================================"
-    echo "EXECUTION FAILED (exit code: $?)"
-    exit 1
+  --plugin-dir "$PLUGIN_DIR" \
+  --permission-mode bypassPermissions 2>&1 | tee "$OUTPUT_FILE" || {
+  echo ""
+  echo "================================================================================"
+  echo "EXECUTION FAILED (exit code: $?)"
+  exit 1
 }
 echo "================================================================================"
 
@@ -135,47 +135,47 @@ echo ""
 # Test 1: Skill was actually invoked, and a subagent was actually dispatched
 echo "Test 1: requesting-code-review skill invoked + reviewer subagent dispatched..."
 if [ -z "$SESSION_FILE" ] || [ ! -f "$SESSION_FILE" ]; then
-    echo "  [FAIL] Could not locate session transcript in $SESSION_DIR"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] Could not locate session transcript in $SESSION_DIR"
+  FAILED=$((FAILED + 1))
 elif ! grep -q '"skill":"snowball:requesting-code-review"' "$SESSION_FILE"; then
-    echo "  [FAIL] requesting-code-review skill was not invoked"
-    echo "         Session: $SESSION_FILE"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] requesting-code-review skill was not invoked"
+  echo "         Session: $SESSION_FILE"
+  FAILED=$((FAILED + 1))
 elif ! grep -q '"name":"Agent"' "$SESSION_FILE"; then
-    echo "  [FAIL] Skill ran but no subagent was dispatched"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] Skill ran but no subagent was dispatched"
+  FAILED=$((FAILED + 1))
 else
-    echo "  [PASS] Skill invoked and subagent dispatched"
+  echo "  [PASS] Skill invoked and subagent dispatched"
 fi
 echo ""
 
 # Test 2: Reviewer caught the SQL injection
 echo "Test 2: SQL injection flagged..."
 if grep -qiE "sql injection|injection|string concat|parameterize|prepared statement|sanitiz" "$OUTPUT_FILE"; then
-    echo "  [PASS] Reviewer flagged the SQL injection vector"
+  echo "  [PASS] Reviewer flagged the SQL injection vector"
 else
-    echo "  [FAIL] Reviewer missed the SQL injection — most obvious planted bug"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] Reviewer missed the SQL injection — most obvious planted bug"
+  FAILED=$((FAILED + 1))
 fi
 echo ""
 
 # Test 3: Reviewer caught the credential / password issue (either logging or no real hashing)
 echo "Test 3: Credential handling issue flagged..."
 if grep -qiE "password|credential|secret|plaintext|log.*hash|hash.*log|sensitive" "$OUTPUT_FILE"; then
-    echo "  [PASS] Reviewer flagged a credential / password handling issue"
+  echo "  [PASS] Reviewer flagged a credential / password handling issue"
 else
-    echo "  [FAIL] Reviewer missed the password/credential issues"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] Reviewer missed the password/credential issues"
+  FAILED=$((FAILED + 1))
 fi
 echo ""
 
 # Test 4: Reviewer marked at least one issue as Critical or Important (not just Minor)
 echo "Test 4: Severity classification..."
 if grep -qiE "critical|important|severe|high.*risk|security" "$OUTPUT_FILE"; then
-    echo "  [PASS] Reviewer classified findings at Critical/Important severity"
+  echo "  [PASS] Reviewer classified findings at Critical/Important severity"
 else
-    echo "  [FAIL] Reviewer did not classify findings as Critical or Important"
-    FAILED=$((FAILED + 1))
+  echo "  [FAIL] Reviewer did not classify findings as Critical or Important"
+  FAILED=$((FAILED + 1))
 fi
 echo ""
 
@@ -183,11 +183,11 @@ echo ""
 echo "Test 5: Reviewer verdict..."
 # A correct reviewer says No or "With fixes". A broken/sycophantic reviewer says Yes/Ready.
 if grep -qiE "ready to merge.*yes|approved.*for merge|^\s*yes\s*$|safe to merge" "$OUTPUT_FILE" \
-   && ! grep -qiE "ready to merge.*no|with fixes|do not merge|not ready|block.*merge" "$OUTPUT_FILE"; then
-    echo "  [FAIL] Reviewer approved a diff with planted Critical bugs"
-    FAILED=$((FAILED + 1))
+  && ! grep -qiE "ready to merge.*no|with fixes|do not merge|not ready|block.*merge" "$OUTPUT_FILE"; then
+  echo "  [FAIL] Reviewer approved a diff with planted Critical bugs"
+  FAILED=$((FAILED + 1))
 else
-    echo "  [PASS] Reviewer did not approve the diff"
+  echo "  [PASS] Reviewer did not approve the diff"
 fi
 echo ""
 
@@ -197,18 +197,18 @@ echo "========================================"
 echo ""
 
 if [ $FAILED -eq 0 ]; then
-    echo "STATUS: PASSED"
-    echo "The code reviewer correctly:"
-    echo "  ✓ Was dispatched via the requesting-code-review skill"
-    echo "  ✓ Flagged the SQL injection"
-    echo "  ✓ Flagged the credential handling issues"
-    echo "  ✓ Classified findings at Critical/Important severity"
-    echo "  ✓ Did not approve the diff for merge"
-    exit 0
+  echo "STATUS: PASSED"
+  echo "The code reviewer correctly:"
+  echo "  ✓ Was dispatched via the requesting-code-review skill"
+  echo "  ✓ Flagged the SQL injection"
+  echo "  ✓ Flagged the credential handling issues"
+  echo "  ✓ Classified findings at Critical/Important severity"
+  echo "  ✓ Did not approve the diff for merge"
+  exit 0
 else
-    echo "STATUS: FAILED"
-    echo "Failed $FAILED verification tests"
-    echo ""
-    echo "Output saved to: $OUTPUT_FILE"
-    exit 1
+  echo "STATUS: FAILED"
+  echo "Failed $FAILED verification tests"
+  echo ""
+  echo "Output saved to: $OUTPUT_FILE"
+  exit 1
 fi
