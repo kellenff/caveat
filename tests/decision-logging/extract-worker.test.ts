@@ -1,6 +1,7 @@
 import { test, expect } from "bun:test";
 import * as fs from "node:fs";
-import { spawn } from "node:child_process";
+import * as path from "node:path";
+import { spawn, execFileSync } from "node:child_process";
 import { setupWorkerEnv, runWorker, cleanupWorkerEnv } from "./worker-test-helpers";
 
 const validObservation = JSON.stringify({
@@ -89,6 +90,45 @@ test("worker pipes only post-cursor transcript lines to claude", () => {
     cleanupWorkerEnv(env);
   }
 });
+
+test("on-pre-compact.sh exists, is executable, and forks the worker", async () => {
+  const env = setupWorkerEnv({
+    transcriptLines: ['{"line": "A"}'],
+    fakeClaudeOutput: validObservation + "\n",
+  });
+  try {
+    const hookPath = path.resolve(
+      __dirname,
+      "..",
+      "..",
+      "skills",
+      "decision-logging",
+      "scripts",
+      "on-pre-compact.sh",
+    );
+    expect(fs.existsSync(hookPath)).toBe(true);
+    expect(fs.statSync(hookPath).mode & 0o111).not.toBe(0);
+
+    const payload = JSON.stringify({ session_id: env.sessionId });
+    execFileSync("bash", [hookPath], {
+      input: payload,
+      env: {
+        ...process.env,
+        HOME: env.home,
+        SNOWBALL_CLAUDE_BIN: env.fakeClaudeBin,
+      },
+      cwd: env.gitRoot,
+    });
+    // Worker is detached; poll for cursor file appearance.
+    const deadline = Date.now() + 15_000;
+    while (Date.now() < deadline && !fs.existsSync(env.cursorPath)) {
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    expect(fs.existsSync(env.cursorPath)).toBe(true);
+  } finally {
+    cleanupWorkerEnv(env);
+  }
+}, 20_000);
 
 test("worker bails when another holds the session lock", async () => {
   const env = setupWorkerEnv({

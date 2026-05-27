@@ -27,7 +27,10 @@ export interface SetupOptions {
 }
 
 export function setupWorkerEnv(opts: SetupOptions): WorkerEnv {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "snowball-worker-"));
+  // Canonicalize tmpdir so the path matches what `git rev-parse --show-toplevel`
+  // returns inside the test repo (macOS resolves /var/folders -> /private/var/folders).
+  const rawRoot = fs.mkdtempSync(path.join(os.tmpdir(), "snowball-worker-"));
+  const root = fs.realpathSync(rawRoot);
   const home = path.join(root, "home");
   const gitRoot = path.join(root, "repo");
   const sessionId = "test-" + Math.random().toString(36).slice(2, 10);
