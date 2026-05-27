@@ -1,5 +1,6 @@
 import { test, expect } from "bun:test";
 import * as fs from "node:fs";
+import { spawn } from "node:child_process";
 import { setupWorkerEnv, runWorker, cleanupWorkerEnv } from "./worker-test-helpers";
 
 const validObservation = JSON.stringify({
@@ -85,6 +86,31 @@ test("worker pipes only post-cursor transcript lines to claude", () => {
     expect(piped).toContain("L5");
     expect(fs.readFileSync(env.cursorPath, "utf-8").trim()).toBe("5");
   } finally {
+    cleanupWorkerEnv(env);
+  }
+});
+
+test("worker bails when another holds the session lock", async () => {
+  const env = setupWorkerEnv({
+    transcriptLines: ['{"line": "A"}', '{"line": "B"}'],
+    fakeClaudeOutput: validObservation + "\n",
+  });
+  // Pre-create the lock file so external flock and worker's exec 9> point at the same inode.
+  fs.writeFileSync(env.lockPath, "");
+  // Hold the lock externally for the duration of this test via `flock <file> sleep N`.
+  const holder = spawn("flock", ["-x", env.lockPath, "sleep", "5"], {
+    stdio: "ignore",
+  });
+  try {
+    // Give flock a moment to acquire the lock.
+    await new Promise((r) => setTimeout(r, 200));
+    const result = runWorker(env);
+    expect(result.status).toBe(0);
+    expect(fs.existsSync(env.claudeMarker)).toBe(false);
+    expect(fs.existsSync(env.observationsPath)).toBe(false);
+    expect(fs.existsSync(env.cursorPath)).toBe(false);
+  } finally {
+    holder.kill("SIGTERM");
     cleanupWorkerEnv(env);
   }
 });

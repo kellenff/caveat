@@ -14,6 +14,14 @@ mkdir -p "$(dirname "$ERROR_LOG")"
 CHECKPOINT_DIR="$HOME/.snowball/checkpoints"
 mkdir -p "$CHECKPOINT_DIR"
 CURSOR="$CHECKPOINT_DIR/${SESSION_ID}.cursor"
+LOCK="$CHECKPOINT_DIR/${SESSION_ID}.lock"
+
+# Non-blocking lock: if another worker is running, bail silently.
+# It will pick up new transcript lines when it iterates.
+if command -v flock >/dev/null 2>&1; then
+  exec 9>"$LOCK"
+  flock -n 9 || exit 0
+fi
 
 # Encode project path the way Claude Code stores transcripts: leading dash, then '/' → '-'
 ENCODED="-$(echo "$GIT_ROOT" | sed 's|^/||; s|/|-|g')"
