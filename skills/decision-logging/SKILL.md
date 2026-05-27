@@ -23,9 +23,12 @@ Three Claude Code hooks emit decisions automatically:
 |---|---|---|
 | PostToolUse on `AskUserQuestion` | User picks an option from a structured prompt | One MADR per question-answer pair (`capture_mechanism: ask-user-question`) |
 | UserPromptSubmit (pattern match) | User submits a free-text prompt matching an approval phrase | One MADR (`capture_mechanism: user-prompt-pattern`), deduped against recent `ask-user-question` captures |
-| Stop → detached worker | Session ends | Headless `claude -p` extracts observations from the transcript; appends to `observations.jsonl` (`source: subagent`). |
+| Stop → detached worker | Session ends | Headless `claude -p` extracts observations from the unprocessed transcript tail; appends to `observations.jsonl` (`source: subagent`). |
+| PreCompact → detached worker | Auto-compaction is about to run | Same detached worker as `Stop`; extracts observations from the unprocessed transcript tail before the context window is summarized. |
 
 All hooks no-op silently when the session is outside a git repo.
+
+The `Stop` and `PreCompact` hooks coordinate via a per-session cursor at `~/.snowball/checkpoints/<session_id>.cursor` and a non-blocking `flock`. Each transcript region is fed to `claude -p` exactly once: `PreCompact` captures the pre-compaction transcript before context is summarized, and `Stop` captures whatever new turns happened after the last `PreCompact`. Long sessions abandoned after compacting still emit pre-compaction observations.
 
 ## Why hooks, not skill cross-references
 
