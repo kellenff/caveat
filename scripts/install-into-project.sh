@@ -98,6 +98,7 @@ SKILLS_MANIFEST_REL=".gitlab/duo/snowball-skills.json"
 # hooks.json command. Resolves to project-local copies of the hook scripts
 # via Duo's ${DUO_PROJECT_DIR} expansion, with SNOWBALL_PLUGIN_ROOT
 # pointing the session-start script at the project's copied skills/.
+# shellcheck disable=SC2016  # ${DUO_PROJECT_DIR} is expanded by Duo at hook-run time, not here.
 HOOK_COMMAND='SNOWBALL_PLUGIN_ROOT="${DUO_PROJECT_DIR}" "${DUO_PROJECT_DIR}/.gitlab/duo/hooks/run-hook.cmd" session-start'
 
 # --- helpers ---
