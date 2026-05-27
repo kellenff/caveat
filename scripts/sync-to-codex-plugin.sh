@@ -215,6 +215,8 @@ fi
 UPSTREAM_STATUS="$(cd "$UPSTREAM" && git status --porcelain)"
 if [[ -n $UPSTREAM_STATUS ]]; then
   echo "WARNING: upstream has uncommitted changes:"
+  # sed required to prefix each line of multi-line status output
+  # shellcheck disable=SC2001
   echo "$UPSTREAM_STATUS" | sed 's/^/  /'
   echo "Sync will use working-tree state, not HEAD ($UPSTREAM_SHORT)."
   confirm "Continue anyway?" || exit 1

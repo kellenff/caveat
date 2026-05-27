@@ -24,6 +24,8 @@ fi
 echo '{"prompt":"lgtm","session_id":"s1"}' \
   | (cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER")
 
+# ls is fine here; filenames are controlled (no spaces/specials in .md files from this test)
+# shellcheck disable=SC2012
 count=$(ls "$TMP_REPO/docs/snowball/decisions"/*.md 2>/dev/null | wc -l | tr -d ' ')
 if [ "$count" -ne 1 ]; then
   echo "[FAIL] approval prompt should write 1 MADR, got $count"
@@ -34,7 +36,9 @@ else
     echo "[PASS] approval prompt writes MADR with capture_mechanism=user-prompt-pattern"
   else
     echo "[FAIL] capture_mechanism wrong:"
-    cat "$MADR_FILE" | sed 's/^/    /'
+    # sed required to prefix each line; ${var//...} can't insert per-line prefixes
+    # shellcheck disable=SC2001
+    sed 's/^/    /' "$MADR_FILE"
     FAIL=1
   fi
 fi
@@ -62,9 +66,13 @@ snowball:
 # existing
 EOF
 
+# ls is fine here; filenames are controlled (no spaces/specials in .md files from this test)
+# shellcheck disable=SC2012
 before=$(ls "$TMP_REPO/docs/snowball/decisions"/*.md | wc -l | tr -d ' ')
 echo '{"prompt":"ship it","session_id":"s1"}' \
   | (cd "$TMP_REPO" && CLAUDE_PLUGIN_ROOT="$REPO_ROOT" bash "$HANDLER")
+# ls is fine here; filenames are controlled (no spaces/specials in .md files from this test)
+# shellcheck disable=SC2012
 after=$(ls "$TMP_REPO/docs/snowball/decisions"/*.md | wc -l | tr -d ' ')
 
 if [ "$after" -eq "$before" ]; then

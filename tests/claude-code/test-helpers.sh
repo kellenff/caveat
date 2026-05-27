@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# sed 's/^/PREFIX/' is idiomatic for indenting multi-line output; ${var//...} can't add per-line prefixes
+# shellcheck disable=SC2001
 # Helper functions for Claude Code skill tests
 
 # Run Claude Code with a prompt and capture output

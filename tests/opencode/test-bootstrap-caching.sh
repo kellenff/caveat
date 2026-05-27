@@ -7,6 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo "=== Test: Bootstrap Content Caching (#1202) ==="
 
+# shellcheck disable=SC1091
 source "$SCRIPT_DIR/setup.sh"
 trap cleanup_test_env EXIT
 

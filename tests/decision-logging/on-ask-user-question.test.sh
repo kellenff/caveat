@@ -49,7 +49,7 @@ if [ ! -d "$DECISIONS_DIR" ]; then
   echo "[FAIL] decisions dir not created"
   FAIL=1
 else
-  count=$(ls "$DECISIONS_DIR" 2>/dev/null | grep -c '\.md$' || true)
+  count=$(find "$DECISIONS_DIR" -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ' || echo 0)
   if [ "$count" -ne 1 ]; then
     echo "[FAIL] expected 1 MADR file, got $count"
     FAIL=1
@@ -61,7 +61,9 @@ else
       echo "[PASS] MADR contains capture_mechanism and chosen option"
     else
       echo "[FAIL] MADR content unexpected:"
-      cat "$MADR_FILE" | sed 's/^/    /'
+      # sed required to prefix each line; ${var//...} can't insert per-line prefixes
+      # shellcheck disable=SC2001
+      sed 's/^/    /' "$MADR_FILE"
       FAIL=1
     fi
   fi

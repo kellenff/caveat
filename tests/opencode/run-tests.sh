@@ -132,6 +132,8 @@ for test in "${tests[@]}"; do
       echo "  [FAIL] (${duration}s)"
       echo ""
       echo "  Output:"
+      # sed required to prefix each line; ${var//...} can't insert per-line prefixes
+      # shellcheck disable=SC2001
       echo "$output" | sed 's/^/    /'
       failed=$((failed + 1))
     fi

@@ -15,6 +15,7 @@
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=tests/claude-code/test-helpers.sh
 source "$SCRIPT_DIR/test-helpers.sh"
 
 # Number of runs per phase (increase for higher confidence)

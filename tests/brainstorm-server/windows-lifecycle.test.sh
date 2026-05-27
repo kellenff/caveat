@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# cleanup() is called via trap, not directly; shellcheck can't trace that
+# shellcheck disable=SC2317
 # Windows lifecycle tests for the brainstorm server.
 #
 # Verifies that the brainstorm server survives the 60-second lifecycle

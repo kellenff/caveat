@@ -5,6 +5,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# shellcheck source=tests/claude-code/test-helpers.sh
 source "$SCRIPT_DIR/test-helpers.sh"
 
 echo "========================================"
@@ -20,7 +21,7 @@ echo ""
 
 TEST_PROJECT=$(create_test_project)
 echo "Test project: $TEST_PROJECT"
-trap "cleanup_test_project $TEST_PROJECT" EXIT
+trap 'cleanup_test_project "$TEST_PROJECT"' EXIT
 
 cd "$TEST_PROJECT"
 
@@ -103,12 +104,14 @@ Print the reviewer's full output."
 # other concurrent claude sessions.
 echo "Running Claude (plugin-dir: $PLUGIN_DIR, cwd: $TEST_PROJECT)..."
 echo "================================================================================"
-cd "$TEST_PROJECT" && timeout 600 claude -p "$PROMPT" \
+cd "$TEST_PROJECT" || exit 1
+timeout 600 claude -p "$PROMPT" \
   --plugin-dir "$PLUGIN_DIR" \
   --permission-mode bypassPermissions 2>&1 | tee "$OUTPUT_FILE" || {
+  _rc=$?
   echo ""
   echo "================================================================================"
-  echo "EXECUTION FAILED (exit code: $?)"
+  echo "EXECUTION FAILED (exit code: $_rc)"
   exit 1
 }
 echo "================================================================================"
@@ -123,7 +126,11 @@ echo ""
 # it to /private/var/...) and replicate claude's normalization (every
 # non-alphanumeric char becomes `-`).
 TEST_PROJECT_REAL=$(cd "$TEST_PROJECT" && pwd -P)
+# sed required; bash ${var//pattern} can't match character classes like [^a-zA-Z0-9]
+# shellcheck disable=SC2001
 SESSION_DIR="$HOME/.claude/projects/$(echo "$TEST_PROJECT_REAL" | sed 's|[^a-zA-Z0-9]|-|g')"
+# ls -t is needed for modification-time sort; find has no equivalent ordering
+# shellcheck disable=SC2012
 # `|| true` prevents pipefail killing the script if ls gets SIGPIPE'd by head.
 SESSION_FILE=$(ls -t "$SESSION_DIR"/*.jsonl 2>/dev/null | head -1 || true)
 

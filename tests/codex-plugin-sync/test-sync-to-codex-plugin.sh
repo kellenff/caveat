@@ -111,6 +111,8 @@ assert_branch_absent() {
   else
     fail "$description"
     echo "    did not expect matching branches:"
+    # sed required to prefix each line; ${var//...} can't insert per-line prefixes
+    # shellcheck disable=SC2001
     echo "$branches" | sed 's/^/      /'
   fi
 }

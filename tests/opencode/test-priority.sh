@@ -12,6 +12,7 @@ OPENCODE_TEST_TIMEOUT_SECONDS="${OPENCODE_TEST_TIMEOUT_SECONDS:-120}"
 echo "=== Test: Skill Priority Resolution ==="
 
 # Source setup to create isolated environment
+# shellcheck disable=SC1091
 source "$SCRIPT_DIR/setup.sh"
 
 # Trap to cleanup on exit

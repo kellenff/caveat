@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 echo "=== Test: Plugin Loading ==="
 
 # Source setup to create isolated environment
+# shellcheck disable=SC1091
 source "$SCRIPT_DIR/setup.sh"
 
 # Trap to cleanup on exit
