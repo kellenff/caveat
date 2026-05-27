@@ -11,6 +11,18 @@ APPENDER="$SCRIPT_DIR/append-observation.cjs"
 ERROR_LOG="$HOME/.snowball/decision-logging-errors.log"
 mkdir -p "$(dirname "$ERROR_LOG")"
 
+CHECKPOINT_DIR="$HOME/.snowball/checkpoints"
+mkdir -p "$CHECKPOINT_DIR"
+CURSOR="$CHECKPOINT_DIR/${SESSION_ID}.cursor"
+LOCK="$CHECKPOINT_DIR/${SESSION_ID}.lock"
+
+# Non-blocking lock: if another worker is running, bail silently.
+# It will pick up new transcript lines when it iterates.
+if command -v flock >/dev/null 2>&1; then
+  exec 9>"$LOCK"
+  flock -n 9 || exit 0
+fi
+
 # Encode project path the way Claude Code stores transcripts: leading dash, then '/' → '-'
 ENCODED="-$(echo "$GIT_ROOT" | sed 's|^/||; s|/|-|g')"
 TRANSCRIPT="$HOME/.claude/projects/$ENCODED/$SESSION_ID.jsonl"
@@ -20,15 +32,26 @@ if [ ! -f "$TRANSCRIPT" ]; then
   exit 0
 fi
 
-# Invoke headless claude with the extraction prompt; pipe transcript on stdin
+PROCESSED=$(cat "$CURSOR" 2>/dev/null || echo 0)
+TOTAL=$(wc -l <"$TRANSCRIPT" | tr -d ' ')
+
+if [ "$TOTAL" -le "$PROCESSED" ]; then
+  exit 0
+fi
+
+CLAUDE_BIN="${SNOWBALL_CLAUDE_BIN:-claude}"
+
+# Slice transcript to unprocessed tail and pipe to headless claude
 SYSTEM_PROMPT=$(cat "$PROMPT_FILE")
-EXTRACTION=$(claude -p \
+EXTRACTION=$(tail -n +$((PROCESSED + 1)) "$TRANSCRIPT" | "$CLAUDE_BIN" -p \
   --append-system-prompt "$SYSTEM_PROMPT" \
-  --output-format text \
-  <"$TRANSCRIPT" 2>>"$ERROR_LOG") || {
+  --output-format text 2>>"$ERROR_LOG") || {
   echo "[$(date)] claude -p failed for session $SESSION_ID" >>"$ERROR_LOG"
   exit 0
 }
 
 # Pipe extracted JSONL to the appender (it skips invalid lines internally)
 echo "$EXTRACTION" | (cd "$GIT_ROOT" && node "$APPENDER") 2>>"$ERROR_LOG"
+
+# Atomic cursor update: write to tmp, then rename
+echo "$TOTAL" >"${CURSOR}.tmp" && mv "${CURSOR}.tmp" "$CURSOR"
