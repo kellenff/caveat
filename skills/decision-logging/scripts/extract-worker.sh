@@ -33,12 +33,11 @@ fi
 
 CLAUDE_BIN="${SNOWBALL_CLAUDE_BIN:-claude}"
 
-# Invoke headless claude with the extraction prompt; pipe transcript on stdin
+# Slice transcript to unprocessed tail and pipe to headless claude
 SYSTEM_PROMPT=$(cat "$PROMPT_FILE")
-EXTRACTION=$("$CLAUDE_BIN" -p \
+EXTRACTION=$(tail -n +$((PROCESSED + 1)) "$TRANSCRIPT" | "$CLAUDE_BIN" -p \
   --append-system-prompt "$SYSTEM_PROMPT" \
-  --output-format text \
-  <"$TRANSCRIPT" 2>>"$ERROR_LOG") || {
+  --output-format text 2>>"$ERROR_LOG") || {
   echo "[$(date)] claude -p failed for session $SESSION_ID" >>"$ERROR_LOG"
   exit 0
 }

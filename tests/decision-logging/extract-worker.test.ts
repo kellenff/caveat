@@ -61,3 +61,30 @@ test("worker exits early when cursor equals total lines", () => {
     cleanupWorkerEnv(env);
   }
 });
+
+test("worker pipes only post-cursor transcript lines to claude", () => {
+  const env = setupWorkerEnv({
+    transcriptLines: [
+      '{"line": "L1"}',
+      '{"line": "L2"}',
+      '{"line": "L3"}',
+      '{"line": "L4"}',
+      '{"line": "L5"}',
+    ],
+    fakeClaudeOutput: validObservation + "\n",
+    initialCursor: 2,
+  });
+  try {
+    const result = runWorker(env);
+    expect(result.status).toBe(0);
+    const piped = fs.readFileSync(env.claudeStdinSink, "utf-8");
+    expect(piped).not.toContain("L1");
+    expect(piped).not.toContain("L2");
+    expect(piped).toContain("L3");
+    expect(piped).toContain("L4");
+    expect(piped).toContain("L5");
+    expect(fs.readFileSync(env.cursorPath, "utf-8").trim()).toBe("5");
+  } finally {
+    cleanupWorkerEnv(env);
+  }
+});
