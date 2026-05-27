@@ -45,6 +45,17 @@
           }
         ]
       }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/skills/decision-logging/scripts/on-pre-compact.sh\"",
+            "async": false
+          }
+        ]
+      }
     ]
   }
 }
