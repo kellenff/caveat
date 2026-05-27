@@ -2871,7 +2871,7 @@ process.stdin.on("end", () => {
   const gitRoot = detectGitRoot();
   if (!gitRoot)
     process.exit(0);
-  else if (isRecentAskUserQuestion(gitRoot))
+  if (isRecentAskUserQuestion(gitRoot))
     process.exit(0);
   const isoDate = new Date().toISOString();
   const input = {

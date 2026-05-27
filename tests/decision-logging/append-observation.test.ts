@@ -63,7 +63,7 @@ test("appendObservation throws on invalid input", () => {
   const repo = makeTempRepo();
   try {
     expect(() =>
-      appendObservation({ ...valid, type: "nope" } as Observation, { gitRoot: repo }),
+      appendObservation({ ...valid, type: "nope" } as unknown as Observation, { gitRoot: repo }),
     ).toThrow(/validation/);
   } finally {
     cleanupTempRepo(repo);
