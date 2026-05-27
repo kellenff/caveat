@@ -1,9 +1,16 @@
-const test = require("node:test");
-const assert = require("node:assert");
-const yaml = require("js-yaml");
-const { assembleMadr, slugify } = require("../../skills/decision-logging/scripts/write-madr.cjs");
+import { test, expect } from "bun:test";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as yaml from "js-yaml";
+import {
+  assembleMadr,
+  slugify,
+  writeMadr,
+  type MadrInput,
+} from "../../skills/decision-logging/src/write-madr";
+import { makeTempRepo, cleanupTempRepo, readDecisionsDir } from "./test-helpers";
 
-const sampleInput = {
+const sampleInput: MadrInput = {
   title: "Choose two-tier storage for decision logs",
   status: "accepted",
   date: "2026-05-25T14:30:00-07:00",
@@ -33,11 +40,11 @@ const sampleInput = {
 test("assembleMadr produces parseable frontmatter", () => {
   const md = assembleMadr(sampleInput);
   const fmMatch = md.match(/^---\n([\s\S]+?)\n---\n/);
-  assert.ok(fmMatch, "expected frontmatter delimiters");
-  const fm = yaml.load(fmMatch[1]);
-  assert.strictEqual(fm.title, sampleInput.title);
-  assert.strictEqual(fm.snowball.schema_version, "1.0");
-  assert.deepStrictEqual(fm.snowball.tags, ["brainstorming", "architecture"]);
+  expect(fmMatch).not.toBeNull();
+  const fm = yaml.load(fmMatch![1]) as Record<string, unknown>;
+  expect(fm.title).toBe(sampleInput.title);
+  expect((fm.snowball as Record<string, unknown>).schema_version).toBe("1.0");
+  expect((fm.snowball as Record<string, unknown>).tags).toEqual(["brainstorming", "architecture"]);
 });
 
 test("assembleMadr renders body sections in canonical order", () => {
@@ -47,55 +54,52 @@ test("assembleMadr renders body sections in canonical order", () => {
   const outIdx = md.indexOf("## Decision Outcome");
   const consIdx = md.indexOf("## Consequences");
   const linkIdx = md.indexOf("## Links");
-  assert.ok(
-    ctxIdx < optIdx && optIdx < outIdx && outIdx < consIdx && consIdx < linkIdx,
-    "body sections must appear in MADR-canonical order",
-  );
+  expect(ctxIdx).toBeLessThan(optIdx);
+  expect(optIdx).toBeLessThan(outIdx);
+  expect(outIdx).toBeLessThan(consIdx);
+  expect(consIdx).toBeLessThan(linkIdx);
 });
 
 test("assembleMadr omits empty optional sections", () => {
-  const minimal = {
+  const minimal: MadrInput = {
     ...sampleInput,
     body: { context: "ctx", decision_outcome: "chose X" },
   };
   const md = assembleMadr(minimal);
-  assert.ok(md.includes("## Context and Problem Statement"));
-  assert.ok(md.includes("## Decision Outcome"));
-  assert.ok(!md.includes("## Considered Options"));
-  assert.ok(!md.includes("## Consequences"));
-  assert.ok(!md.includes("## Links"));
+  expect(md).toContain("## Context and Problem Statement");
+  expect(md).toContain("## Decision Outcome");
+  expect(md).not.toContain("## Considered Options");
+  expect(md).not.toContain("## Consequences");
+  expect(md).not.toContain("## Links");
 });
 
 test("slugify lowercases and replaces non-alphanumerics with hyphens", () => {
-  assert.strictEqual(slugify("Choose Two-tier Storage"), "choose-two-tier-storage");
-  assert.strictEqual(slugify("Don't! Refactor"), "don-t-refactor");
+  expect(slugify("Choose Two-tier Storage")).toBe("choose-two-tier-storage");
+  expect(slugify("Don't! Refactor")).toBe("don-t-refactor");
 });
 
 test("slugify truncates to a reasonable max length", () => {
   const long = "a".repeat(200);
   const s = slugify(long);
-  assert.ok(s.length <= 60, `slug too long: ${s.length} chars`);
+  expect(s.length).toBeLessThanOrEqual(60);
 });
 
 test("slugify handles non-string input by returning a fallback", () => {
-  assert.strictEqual(slugify(null), "untitled");
-  assert.strictEqual(slugify(""), "untitled");
+  expect(slugify(null)).toBe("untitled");
+  expect(slugify("")).toBe("untitled");
 });
-
-const fs = require("node:fs");
-const path = require("node:path");
-const { writeMadr } = require("../../skills/decision-logging/scripts/write-madr.cjs");
-const { makeTempRepo, cleanupTempRepo, readDecisionsDir } = require("./test-helpers.cjs");
 
 test("writeMadr writes to <repo>/docs/snowball/decisions/<timestamp>-<slug>.md", () => {
   const repo = makeTempRepo();
   try {
     const filePath = writeMadr(sampleInput, { gitRoot: repo });
-    assert.ok(filePath.startsWith(path.join(repo, "docs", "snowball", "decisions") + path.sep));
-    assert.ok(fs.existsSync(filePath));
+    expect(filePath.startsWith(path.join(repo, "docs", "snowball", "decisions") + path.sep)).toBe(
+      true,
+    );
+    expect(fs.existsSync(filePath)).toBe(true);
     const files = readDecisionsDir(repo);
-    assert.strictEqual(files.length, 1);
-    assert.match(files[0], /^2026-05-25T1430-choose-two-tier-storage-for-decision-logs\.md$/);
+    expect(files.length).toBe(1);
+    expect(files[0]).toMatch(/^2026-05-25T1430-choose-two-tier-storage-for-decision-logs\.md$/);
   } finally {
     cleanupTempRepo(repo);
   }
@@ -105,7 +109,7 @@ test("writeMadr creates the decisions directory if absent", () => {
   const repo = makeTempRepo();
   try {
     writeMadr(sampleInput, { gitRoot: repo });
-    assert.ok(fs.existsSync(path.join(repo, "docs", "snowball", "decisions")));
+    expect(fs.existsSync(path.join(repo, "docs", "snowball", "decisions"))).toBe(true);
   } finally {
     cleanupTempRepo(repo);
   }
@@ -116,9 +120,9 @@ test("writeMadr appends a suffix when minute collision occurs", () => {
   try {
     writeMadr(sampleInput, { gitRoot: repo });
     const p2 = writeMadr({ ...sampleInput }, { gitRoot: repo });
-    assert.ok(fs.existsSync(p2));
+    expect(fs.existsSync(p2)).toBe(true);
     const files = readDecisionsDir(repo);
-    assert.strictEqual(files.length, 2);
+    expect(files.length).toBe(2);
   } finally {
     cleanupTempRepo(repo);
   }
