@@ -1,4 +1,50 @@
-# Superpowers Release Notes
+# Snowball Release Notes
+
+## v5.2.0 (2026-05-27)
+
+First Snowball-branded release after forking from `obra/superpowers` v5.1.0 on 2026-05-25. Adds GitLab Duo as a seventh supported harness, a hook-driven decision-logging pipeline, structured argumentation via Argdown, and a Bun/TypeScript build toolchain.
+
+### Fork Rebrand
+
+The project was renamed from `superpowers` to `snowball`. All plugin manifests, skill references, and bootstrap content use the new name. CLAUDE.md's upstream contributor-policing prose was dropped in favor of fork-appropriate guidance; contributions are not accepted on this fork.
+
+### GitLab Duo Support (7th harness)
+
+GitLab Duo joins Claude Code, Codex, Cursor, OpenCode, Gemini CLI, and Copilot CLI as a supported harness.
+
+- **`scripts/install-into-project.sh`** — cross-project Snowball setup that drops the right manifests, hooks, and skills into a target repo and merges (not overwrites) `AGENTS.md` and `hooks.json`. (PR #1)
+- **Real files, not symlinks** — Duo's runtime resolves paths differently than other harnesses; the installer copies skill content directly instead of symlinking into the Snowball clone. (PR #5)
+- **Project-defined skills coexist with shipped ones** — `using-snowball` recognizes a project's local `skills/<name>/` and lets it override Snowball-shipped defaults of the same name.
+- **CI** — GitHub Actions workflow runs pre-commit hooks, lints, and tests on PRs.
+
+### Decision Logging (Phase 1)
+
+A new hook pipeline captures architectural decisions as MADR markdown plus a JSONL append-only index, fed by four Claude Code hook events:
+
+- **PostToolUse / AskUserQuestion** — captures explicit choice points the user resolved via the question UI.
+- **UserPromptSubmit** — detects approval phrases ("yes do that", "ship it", etc.) with case-insensitive boundary matching and 60s dedup, treating the preceding agent proposal as the decision.
+- **Stop** — fires a detached extraction worker that scans the transcript for implicit decisions the inline hooks missed; serialized via non-blocking `flock` so concurrent sessions don't trample each other.
+- **PreCompact** — re-extracts decisions from the soon-to-be-compacted transcript window so observations survive context resets. Per-session cursor with exit-early dedup prevents reprocessing. (PR #4)
+- Captures land in `docs/snowball/decisions/` as one MADR file per decision plus an append-only `decisions.jsonl` index. Schema lives in `skills/decision-logging/SKILL.md`.
+
+### Structured Argumentation Skill (Argdown)
+
+New `structured-argumentation` skill plus Argdown MCP integration (`@argdown/core`). Use when externalizing the structure of an argument you've already reasoned through in prose — surfacing premises/conclusion of a dense review claim, the option/trade-off graph of design alternatives, or the hypothesis-elimination tree of a stuck debugging session. Argdown is an intermediate representation, not a reasoning substrate. Host skills (`brainstorming`, `writing-plans`, `systematic-debugging`, `requesting-code-review`, `decision-logging`) gained explicit integration points. (PR #6)
+
+### Bun / TypeScript Toolchain
+
+The decision-logging runtime was ported from hand-rolled `.cjs` files to TypeScript under `src/`, built into shippable bundles via a build script. (PR #3)
+
+- **`bun test`** for unit tests; `tsconfig.json` and `.editorconfig` standardize the toolchain across contributors.
+- **Pre-commit config** wires shellcheck, oxlint, oxfmt, shfmt, markdownlint, and trailing-whitespace/EOF fixers.
+- **`js-yaml` moved to devDeps** so the README's zero-runtime-deps claim still holds; bundles inline what they need.
+- **CodeQL findings fixed** — insecure randomness in test helpers, DOM-text reinterpretation in extraction harness.
+
+### Tooling and Repo Hygiene
+
+- IntelliJ module config excludes the append-only `docs/snowball/decisions/` from project content.
+- `.version-bump.json` audit excludes `decisions/` so historical MADR files don't trip future audits.
+- Dependabot bump for `ws` in `tests/brainstorm-server`. (PR #2)
 
 ## v5.1.0 (2026-04-30)
 
