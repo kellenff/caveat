@@ -83,6 +83,7 @@ digraph brainstorming {
 - Present options conversationally with your recommendation and reasoning
 - Lead with your recommended option and explain why
 - **OPTIONAL SUB-SKILL:** Once the alternatives are stable and their pros/cons cross-cut (the same consideration applies to multiple options, no single option clearly wins), use `snowball:structured-argumentation` to externalize the option/trade-off graph as a sibling `.argdown` file next to the spec. The graph surfaces the structure of the reasoning you've already done in prose — it does not replace prose deliberation. Skip for simple either/or choices.
+- **OPTIONAL SUB-SKILL (second-model perspective):** At the same decision point, if the M2 brain-jam companion was offered and accepted this session, you may delegate to `m2-brainstorm:brain-jam` for a second-model perspective on the stable alternatives. See the M2 Brain-Jam Companion section below. Complementary to structured-argumentation: argdown structures your own reasoning, the jam brings MiniMax's.
 
 **Presenting the design:**
 
@@ -163,3 +164,27 @@ A question about a UI topic is not automatically a visual question. "What does p
 
 If they agree to the companion, read the detailed guide before proceeding:
 `skills/brainstorming/visual-companion.md`
+
+## M2 Brain-Jam Companion
+
+A second-model brainstorming partner: the `m2-brainstorm` plugin's `brain-jam` skill runs a multi-round dialogue with MiniMax (a skeptical pragmatist plus a technical enthusiast) and often surfaces angles a single model misses. Available as an optional tool when the plugin is installed — not a mode. Accepting the offer means it's *available* for hard decisions; it does NOT route every decision through MiniMax.
+
+**Detecting availability:** Before offering, check whether the `m2-brainstorm` CLI is installed:
+
+```bash
+[ -x "$HOME/.config/m2-brainstorm/bin/m2-brainstorm" ]
+```
+
+If the binary is absent or not executable, say nothing and proceed with normal brainstorming. The offer never appears when the plugin isn't installed.
+
+**Offering the companion:** When the binary is detected AND the brainstorm is substantive enough that cross-cutting trade-offs are plausible, offer it once — the same topic-conditional spirit as the Visual Companion. Skip the offer for trivially-simple brainstorms where no real alternatives will arise; the binary being installed is necessary but not sufficient.
+
+> "I can bring in MiniMax (M2) as a second brainstorming partner through the m2-brainstorm plugin. When we hit a genuinely cross-cutting trade-off, it role-plays a skeptical pragmatist and a technical enthusiast across a few rounds and often surfaces angles I'd miss alone. It's token-intensive and needs a MiniMax API key. Want it available for this session? I'll only reach for it on hard, cross-cutting calls — not every question."
+
+**This offer MUST be its own message.** Do not combine it with clarifying questions, context summaries, or any other content. When both companions apply, make the Visual Companion offer first, then this one — each its own standalone message — before clarifying questions begin. If the user declines, proceed with normal brainstorming.
+
+**When to reach for it:** Only at the "Propose 2-3 approaches" step, once alternatives are stable and their pros/cons cross-cut (the same condition that gates the `snowball:structured-argumentation` sub-skill). Not for from-scratch ideation — that's what the rest of this skill is for.
+
+**How to run it — delegate, then reclaim control:** Invoke `m2-brainstorm:brain-jam` via the Skill tool, framed as *a second perspective on these specific, already-stable alternatives*. That framing satisfies brain-jam's valid-use criteria and sidesteps its "NOT for from-scratch exploration" guard. When brain-jam reaches its hand-off step ("draft a design doc, hand back to `snowball:brainstorming`, or keep digging?"), always hand the synthesized angles back to brainstorming and continue presenting approaches. Brainstorming stays the driver; brain-jam is a sub-routine that returns angles. If the jam fails (missing API key, CLI error), note it and continue text-only — it never blocks design progress.
+
+**Relationship to structured-argumentation:** Complementary, can chain. Argdown externalizes the structure of *your own* reasoning; brain-jam injects a *second model's* reasoning. A natural combination: jam to surface angles, then argdown to structure the resulting option/trade-off graph.
